@@ -11,6 +11,8 @@ import more_itertools
 from typing import Union, Tuple, List
 import ir_datasets
 from npids import Lookup
+
+# converts getter/setter to attribute of instance
 try:
   from functools import cached_property
 except ImportError:
@@ -21,6 +23,8 @@ except ImportError:
     def __get__(self, obj, cls):
       value = obj.__dict__[self.fn.__name__] = self.fn(obj)
       return value
+  
+'''no idea'''
 logger = ir_datasets.log.easy()
 
 
@@ -28,6 +32,7 @@ class CorpusGraph:
   def neighbours(self, docid: Union[int, str], weights: bool = False) -> Union[np.array, List[str], Tuple[np.array, np.array], Tuple[List[str], np.array]]:
     raise NotImplementedError()
 
+  #
   @staticmethod
   def load(path, **kwargs):
     with (Path(path)/'pt_meta.json').open('rt') as fin:

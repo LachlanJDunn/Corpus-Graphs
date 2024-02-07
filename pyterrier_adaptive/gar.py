@@ -54,38 +54,42 @@ class GAR(pt.Transformer):
         """
         result = {'qid': [], 'query': [], 'docno': [], 'rank': [], 'score': [], 'iteration': []}
 
+        #provides dictionary of qid: data (ie. query, rank, score etc.)
         df = dict(iter(df.groupby(by=['qid'])))
         qids = df.keys()
+
+        #adds progress bar
         if self.verbose:
             qids = logger.pbar(qids, desc='adaptive re-ranking', unit='query')
 
         for qid in qids:
             query = df[qid]['query'].iloc[0]
             scores = {}
-            res_map = [Counter(dict(zip(df[qid].docno, df[qid].score)))] # initial results
+            res_map = [Counter(dict(zip(df[qid].docno, df[qid].score)))] # initial results (from first round)
             if self.enabled:
                 res_map.append(Counter()) # frontier
             frontier_data = {'minscore': float('inf')}
             iteration = 0
+            #while not all rescored and either frontier/results not empty
             while len(scores) < self.num_results and any(r for r in res_map):
                 if len(res_map[iteration%len(res_map)]) == 0:
-                    # if there's nothing available for the one we select, skip this iteration (i.e., move on to the next one)
+                    # skip if results map / frontier is empty (and go to next one)
                     iteration += 1
                     continue
-                this_res = res_map[iteration%len(res_map)] # alternate between the initial ranking and frontier
+                this_res = res_map[iteration%len(res_map)] # alternate between the initial ranking and frontier (dict from id to score)
                 size = min(self.batch_size, self.num_results - len(scores)) # get either the batch size or remaining budget (whichever is smaller)
                 
                 # build batch of documents to score in this round
-                batch = this_res.most_common(size)
+                batch = this_res.most_common(size) #takes size number of documents and orders by highest score 
                 batch = pd.DataFrame(batch, columns=['docno', 'score'])
-                batch['qid'] = qid
+                batch['qid'] = qid #labels with qid and query
                 batch['query'] = query
 
                 # go score the batch of document with the re-ranker
                 batch = self.scorer(batch)
-                scores.update({k: (s, iteration) for k, s in zip(batch.docno, batch.score)})
+                scores.update({k: (s, iteration) for k, s in zip(batch.docno, batch.score)}) #update information
                 self._drop_docnos_from_counters(batch.docno, res_map)
-                if len(scores) < self.num_results and self.enabled:
+                if len(scores) < self.num_results and self.enabled: #if more documents to rescore
                     self._update_frontier(batch, res_map[1], frontier_data, scores)
                 iteration += 1
 
