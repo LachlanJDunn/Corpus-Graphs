@@ -24,7 +24,6 @@ except ImportError:
       value = obj.__dict__[self.fn.__name__] = self.fn(obj)
       return value
   
-'''no idea'''
 logger = ir_datasets.log.easy()
 
 
@@ -35,6 +34,7 @@ class CorpusGraph:
   #
   @staticmethod
   def load(path, **kwargs):
+    # checks requirements and loads graph from path
     with (Path(path)/'pt_meta.json').open('rt') as fin:
       meta = json.load(fin)
     assert meta.get('type') == 'corpus_graph'
@@ -143,6 +143,7 @@ class CorpusGraph:
 
 class NpTopKCorpusGraph(CorpusGraph):
   def __init__(self, path, k=None):
+    # loads meta data and checks in correct form
     self.path = Path(path)
     with (self.path/'pt_meta.json').open('rt') as fin:
       self.meta = json.load(fin)
@@ -160,6 +161,7 @@ class NpTopKCorpusGraph(CorpusGraph):
 
   @cached_property
   def edges_data(self):
+    # loads data and alters to fit k
     res = np.memmap(self._edges_path, mode='r', dtype=np.uint32).reshape(-1, self._data_k)
     if self._k != self._data_k:
       res = res[:, :self._k]
@@ -167,12 +169,14 @@ class NpTopKCorpusGraph(CorpusGraph):
 
   @cached_property
   def weights_data(self):
+    # loads data and alters to fit k
     res = np.memmap(self._weights_path, mode='r', dtype=np.float16).reshape(-1, self._data_k)
     if self._k != self._data_k:
       res = res[:, :self._k]
     return res
 
   def neighbours(self, docid, weights=False):
+    # returns neighbours using data
     as_str = isinstance(docid, str)
     if as_str:
       docid = self._docnos.inv[docid]

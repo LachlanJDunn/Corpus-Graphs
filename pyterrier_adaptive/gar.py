@@ -68,7 +68,7 @@ class GAR(pt.Transformer):
             res_map = [Counter(dict(zip(df[qid].docno, df[qid].score)))] # initial results (from first round)
             if self.enabled:
                 res_map.append(Counter()) # frontier
-            frontier_data = {'minscore': float('inf')}
+            frontier_data = {'minscore': float('inf')} #ignores lower scored documents if budget is exceeded
             iteration = 0
             #while not all rescored and either frontier/results not empty
             while len(scores) < self.num_results and any(r for r in res_map):
@@ -87,7 +87,7 @@ class GAR(pt.Transformer):
 
                 # go score the batch of document with the re-ranker
                 batch = self.scorer(batch)
-                scores.update({k: (s, iteration) for k, s in zip(batch.docno, batch.score)}) #update information
+                scores.update({k: (s, iteration) for k, s in zip(batch.docno, batch.score)}) #update information in form: docno: (score, iteration)
                 self._drop_docnos_from_counters(batch.docno, res_map)
                 if len(scores) < self.num_results and self.enabled: #if more documents to rescore
                     self._update_frontier(batch, res_map[1], frontier_data, scores)
@@ -126,12 +126,13 @@ class GAR(pt.Transformer):
         })
 
     def _update_frontier(self, scored_batch, frontier, frontier_data, scored_dids):
-        remaining_budget = self.num_results - len(scored_dids)
-        for score, did in sorted(zip(scored_batch.score, scored_batch.docno), reverse=True):
+        remaining_budget = self.num_results - len(scored_dids) #total number of documents remaining to score
+        for score, did in sorted(zip(scored_batch.score, scored_batch.docno), reverse=True): #loop through highest to lowest scores
             if len(frontier) < remaining_budget or score >= frontier_data['minscore']:
                 hit = False
-                for target_did in self.corpus_graph.neighbours(did):
+                for target_did in self.corpus_graph.neighbours(did): #loop through neighbours
                     if target_did not in scored_dids:
+                        # updates score of neighbour to highest score of its already scored neighbours
                         if target_did not in frontier or score > frontier[target_did]:
                             frontier[target_did] = score
                             hit = True
@@ -139,6 +140,7 @@ class GAR(pt.Transformer):
                     frontier_data['minscore'] = score
 
     def _drop_docnos_from_counters(self, docnos, counters):
+        # remove scored documents from frontier/inital list
         for docno in docnos:
             for c in counters:
                 del c[docno]
