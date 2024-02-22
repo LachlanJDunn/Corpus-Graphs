@@ -1,3 +1,2 @@
 python-terrier
 npids>=0.0.2
-git+https://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@gitprovider.com/LachlanJDunn/Corpus-Graphs.git
