@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="pyterrier_adaptive_v1",
+    name="corpus_graphs",
     version="0.0.1",
     author="Lachlan Dunn",
     author_email="lachlan_dunn6@outlook.com",
