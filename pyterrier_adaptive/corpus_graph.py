@@ -11,6 +11,7 @@ import more_itertools
 from typing import Union, Tuple, List
 import ir_datasets
 from npids import Lookup
+import IPython
 
 # converts getter/setter to attribute of instance
 try:
@@ -119,6 +120,10 @@ class CorpusGraph:
             did_res = res_by_qid.get(docno)
             dids, scores = [], []
             if did_res is not None:
+              print("did_res:")
+              display(dis_res)
+              print("res")
+              display(res)
               did_res = did_res[did_res.docno != docno].iloc[:k]
               if len(did_res) > 0:
                 dids = docnos.inv[list(did_res.docno)]

@@ -5,14 +5,14 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="pyterrier_adaptive",
+    name="pyterrier_adaptive_v1",
     version="0.0.1",
-    author="Sean MacAvaney",
-    author_email="sean.macavaney@glasgow.ac.uk",
-    description="PyTerrier implementation of Adaptive Re-Ranking using a Corpus Graph (CIKM 2022)",
+    author="Lachlan Dunn",
+    author_email="lachlan_dunn6@outlook.com",
+    description="Corpus Graphs",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/terrierteam/pyterrier_adaptive",
+    url="https://github.com/LachlanJDunn/Corpus-Graphs",
     packages=setuptools.find_packages(include=['pyterrier_adaptive']),
     install_requires=list(open('requirements.txt')),
     classifiers=[],
