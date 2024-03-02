@@ -82,6 +82,7 @@ class GAR(pt.Transformer):
                 # build batch of documents to score in this round
                 batch = this_res.most_common(size) #takes size number of documents and orders by highest score 
                 batch = pd.DataFrame(batch, columns=['docno', 'score'])
+                print(batch.head())
                 batch['qid'] = qid #labels with qid and query
                 batch['query'] = query
 
