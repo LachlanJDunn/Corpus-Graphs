@@ -12,8 +12,6 @@ from typing import Union, Tuple, List
 import ir_datasets
 from npids import Lookup
 import IPython
-global lll
-lll = True
 
 # converts getter/setter to attribute of instance
 try:
@@ -114,6 +112,7 @@ class CorpusGraph:
 
       # Now read out everything in the file and retrieve using each one. Do this in batches for efficiency.
       with ir_datasets.util.finialized_file(str(edges_path), 'wb') as fe, ir_datasets.util.finialized_file(str(weights_path), 'wb') as fw, LZ4FrameFile(f'{dout}/docs.pkl.lz4', 'rb') as fin:
+        lll = True
         for chunk in more_itertools.chunked(logger.pbar(range(len(docnos)), miniters=1, smoothing=0, desc='searching', total=len(docnos)), batch_size):
           chunk = [pickle.load(fin) for _ in chunk]
           res = retriever(pd.DataFrame(chunk).rename(columns={'docno': 'qid', 'text': 'query'}))
