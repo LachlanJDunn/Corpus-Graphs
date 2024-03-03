@@ -88,8 +88,10 @@ class GAR(pt.Transformer):
                 print(batch)
                 print(qid)
                 print(query)
-                batch['qid'] = qid #labels with qid and query
-                batch['query'] = query
+                #batch['qid'] = qid #labels with qid and query
+                #batch['query'] = query
+                batch['qid'] = [qid*16]  # labels with qid and query
+                batch['query'] = [query*16]
 
                 # go score the batch of document with the re-ranker
                 batch = self.scorer(batch)
