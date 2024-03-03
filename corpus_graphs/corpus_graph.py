@@ -115,15 +115,19 @@ class CorpusGraph:
         for chunk in more_itertools.chunked(logger.pbar(range(len(docnos)), miniters=1, smoothing=0, desc='searching', total=len(docnos)), batch_size):
           chunk = [pickle.load(fin) for _ in chunk]
           res = retriever(pd.DataFrame(chunk).rename(columns={'docno': 'qid', 'text': 'query'}))
+          print("res")
+          print(res)
           res_by_qid = dict(iter(res.groupby('qid')))
+          print('res_by_qid')
+          print(res_by_qid)
           for docno in [c['docno'] for c in chunk]:
             did_res = res_by_qid.get(docno)
             dids, scores = [], []
             if did_res is not None:
               print("did_res:")
-              print(dis_res)
-              print("res")
-              print(res)
+              print(did_res)
+              print('docno')
+              print(docno)
               did_res = did_res[did_res.docno != docno].iloc[:k]
               if len(did_res) > 0:
                 dids = docnos.inv[list(did_res.docno)]
