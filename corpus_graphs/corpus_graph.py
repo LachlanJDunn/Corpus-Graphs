@@ -121,9 +121,9 @@ class CorpusGraph:
             dids, scores = [], []
             if did_res is not None:
               print("did_res:")
-              display(dis_res)
+              print(dis_res)
               print("res")
-              display(res)
+              print(res)
               did_res = did_res[did_res.docno != docno].iloc[:k]
               if len(did_res) > 0:
                 dids = docnos.inv[list(did_res.docno)]

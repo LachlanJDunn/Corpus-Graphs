@@ -91,8 +91,11 @@ class GAR(pt.Transformer):
                 #batch['qid'] = qid #labels with qid and query
                 #batch['query'] = query
                 print(type(qid))
-                batch['qid'] = [qid*16]  # labels with qid and query
-                batch['query'] = [query*16]
+                print(len(qid))
+                print(qid[0])
+                print(type(qid[0]))
+                batch['qid'] = [qid for i in range(16)]  # labels with qid and query
+                batch['query'] = [query for i in range(16)]
 
                 # go score the batch of document with the re-ranker
                 batch = self.scorer(batch)
