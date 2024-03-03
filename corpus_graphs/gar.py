@@ -55,20 +55,20 @@ class GAR(pt.Transformer):
         result = {'qid': [], 'query': [], 'docno': [], 'rank': [], 'score': [], 'iteration': []}
 
         #provides dictionary of qid: data (ie. query, rank, score etc.)
-        print(df)
+        '''print(df)'''
         df = dict(iter(df.groupby(by=['qid'])))
-        print(df)
+        '''print(df)'''
         qids = df.keys()
 
         #adds progress bar
         if self.verbose:
             qids = logger.pbar(qids, desc='adaptive re-ranking', unit='query')
-        print(qids)
+        '''print(qids)'''
         for qid in qids:
             query = df[qid]['query'].iloc[0]
             scores = {}
             res_map = [Counter(dict(zip(df[qid].docno, df[qid].score)))] # initial results (from first round)
-            print(res_map)
+            '''print(res_map)'''
             if self.enabled:
                 res_map.append(Counter()) # frontier
             frontier_data = {'minscore': float('inf')} #ignores lower scored documents if budget is exceeded
@@ -81,19 +81,19 @@ class GAR(pt.Transformer):
                     continue
                 this_res = res_map[iteration%len(res_map)] # alternate between the initial ranking and frontier (dict from id to score)
                 size = min(self.batch_size, self.num_results - len(scores)) # get either the batch size or remaining budget (whichever is smaller)
-                print(this_res)
+                '''print(this_res)'''
                 # build batch of documents to score in this round
                 batch = this_res.most_common(size) #takes size number of documents and orders by highest score 
                 batch = pd.DataFrame(batch, columns=['docno', 'score'])
-                print(batch)
+                '''print(batch)
                 print(qid)
-                print(query)
+                print(query)'''
                 #batch['qid'] = qid #labels with qid and query
                 #batch['query'] = query
-                print(type(qid))
+                '''print(type(qid))
                 print(len(qid))
                 print(qid[0])
-                print(type(qid[0]))
+                print(type(qid[0]))'''
                 batch['qid'] = [qid for i in range(len(batch.index))]  # labels with qid and query
                 batch['query'] = [query for i in range(len(batch.index))]
 
