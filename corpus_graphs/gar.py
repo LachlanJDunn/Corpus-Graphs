@@ -55,6 +55,7 @@ class GAR(pt.Transformer):
         result = {'qid': [], 'query': [], 'docno': [], 'rank': [], 'score': [], 'iteration': []}
 
         #provides dictionary of qid: data (ie. query, rank, score etc.)
+        print(df)
         df = dict(iter(df.groupby(by=['qid'])))
         print(df)
         qids = df.keys()
