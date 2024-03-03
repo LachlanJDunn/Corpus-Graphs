@@ -56,6 +56,7 @@ class GAR(pt.Transformer):
 
         #provides dictionary of qid: data (ie. query, rank, score etc.)
         df = dict(iter(df.groupby(by=['qid'])))
+        print(df)
         qids = df.keys()
 
         #adds progress bar
@@ -83,7 +84,7 @@ class GAR(pt.Transformer):
                 # build batch of documents to score in this round
                 batch = this_res.most_common(size) #takes size number of documents and orders by highest score 
                 batch = pd.DataFrame(batch, columns=['docno', 'score'])
-                print(batch.head())
+                print(batch)
                 print(qid)
                 print(query)
                 batch['qid'] = qid #labels with qid and query
