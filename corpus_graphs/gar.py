@@ -90,6 +90,7 @@ class GAR(pt.Transformer):
                 print(query)
                 #batch['qid'] = qid #labels with qid and query
                 #batch['query'] = query
+                print(type(qid))
                 batch['qid'] = [qid*16]  # labels with qid and query
                 batch['query'] = [query*16]
 
