@@ -112,27 +112,14 @@ class CorpusGraph:
 
       # Now read out everything in the file and retrieve using each one. Do this in batches for efficiency.
       with ir_datasets.util.finialized_file(str(edges_path), 'wb') as fe, ir_datasets.util.finialized_file(str(weights_path), 'wb') as fw, LZ4FrameFile(f'{dout}/docs.pkl.lz4', 'rb') as fin:
-        lll = True
         for chunk in more_itertools.chunked(logger.pbar(range(len(docnos)), miniters=1, smoothing=0, desc='searching', total=len(docnos)), batch_size):
           chunk = [pickle.load(fin) for _ in chunk]
           res = retriever(pd.DataFrame(chunk).rename(columns={'docno': 'qid', 'text': 'query'}))
-          if lll == True:
-            print("res")
-            print(res)
           res_by_qid = dict(iter(res.groupby('qid')))
-          if lll == True:
-            print('res_by_qid')
-            print(res_by_qid)
           for docno in [c['docno'] for c in chunk]:
             did_res = res_by_qid.get(docno)
             dids, scores = [], []
             if did_res is not None:
-              if lll == True:
-                print("did_res:")
-                print(did_res)
-                print('docno')
-                print(docno)
-                lll = False
               did_res = did_res[did_res.docno != docno].iloc[:k]
               if len(did_res) > 0:
                 dids = docnos.inv[list(did_res.docno)]
