@@ -59,7 +59,7 @@ class CorpusGraph:
     edges_path = out_dir/'edges.u32.np'
     weights_path = out_dir/'weights.f16.np'
 
-    ids = pd.DataFrame(data={'id': [False for i in range(11429)]})
+    ids = pd.DataFrame(data={'id': [-1 for i in range(11429)]})
     id_count = 0
     count = 0
 
@@ -78,7 +78,7 @@ class CorpusGraph:
           chunk = [pickle.load(fin) for _ in chunk]  # creates list of docs
           chunk_df = pd.DataFrame(chunk).rename(columns={'docno': 'qid', 'text': 'query'})
           to_drop = ids.iloc[[int(i)-1 for i in chunk_df.qid.to_numpy()]]
-          to_drop = to_drop.loc[to_drop['id'] != False]
+          to_drop = to_drop.loc[to_drop['id'] != -1]
           chunk_df = chunk_df.drop(to_drop.index) # remove already scored documents
           res = retriever(chunk_df)  # result of retrieval of one chunk
           # mapping of qid to query/docno/docno/score/rank (as multiple queries in chunk)
@@ -93,9 +93,9 @@ class CorpusGraph:
               if len(did_res) > 0:
                 for i in range(len(did_res.index)):
                   qid2 = did_res.iloc[i]['qid']
-                  if ids.iloc[int(qid2)-1]['id'] == False:
+                  if ids.iloc[int(qid2)-1]['id'] == -1:
                     docnos.add(qid2)
-                    ids.iloc[int(qid2)-1]['id'] = id_count
+                    ids.loc[int(qid2)-1, 'id'] = id_count
                     dids.append(id_count)
                     id_count += 1
                   else:
