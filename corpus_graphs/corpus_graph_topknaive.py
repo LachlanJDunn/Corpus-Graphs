@@ -77,7 +77,7 @@ class CorpusGraph:
         for chunk in more_itertools.chunked(logger.pbar(range(11429), miniters=1, smoothing=0, desc='searching', total=11429), batch_size):
           chunk = [pickle.load(fin) for _ in chunk]  # creates list of docs
           chunk_df = pd.DataFrame(chunk).rename(columns={'docno': 'qid', 'text': 'query'})
-          to_drop = ids.iloc[[i-1 for i in chunk_df.qid.to_numpy()]]
+          to_drop = ids.iloc[[int(i)-1 for i in chunk_df.qid.to_numpy()]]
           to_drop = to_drop.loc[to_drop['id'] != False]
           chunk_df = chunk_df.drop(to_drop.index) # remove already scored documents
           res = retriever(chunk_df)  # result of retrieval of one chunk
