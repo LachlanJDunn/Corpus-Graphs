@@ -59,8 +59,8 @@ class CorpusGraph:
     edges_path = out_dir/'edges.u32.np'
     weights_path = out_dir/'weights.f16.np'
 
-    visited = pd.DataFrame(data={'docid': [
-                           i+1 for i in range(11429)], 'visited': [False for i in range(11429)]})
+    ids = pd.DataFrame(data={'id': [False for i in range(11429)]})
+    id_count = 0
     count = 0
 
     # First step: We need a docno <-> index mapping for this to work. Do a pass over the iterator
@@ -77,7 +77,9 @@ class CorpusGraph:
         for chunk in more_itertools.chunked(logger.pbar(range(11429), miniters=1, smoothing=0, desc='searching', total=11429), batch_size):
           chunk = [pickle.load(fin) for _ in chunk]  # creates list of docs
           chunk_df = pd.DataFrame(chunk).rename(columns={'docno': 'qid', 'text': 'query'})
-          chunk_df.drop(visited.loc[visited['docid'].isin(chunk_df.qid.to_numpy()) & visited['visited'] == True].index) # remove already scored documents
+          to_drop = ids.iloc[[i-1 for i in chunk_df.qid.to_numpy()]]
+          to_drop = to_drop.loc[to_drop['id'] != False]
+          chunk_df = chunk_df.drop(to_drop.index) # remove already scored documents
           res = retriever(chunk_df)  # result of retrieval of one chunk
           # mapping of qid to query/docno/docno/score/rank (as multiple queries in chunk)
           res_by_qid = dict(iter(res.groupby('qid')))
@@ -91,18 +93,21 @@ class CorpusGraph:
               if len(did_res) > 0:
                 for i in range(len(did_res.index)):
                   qid2 = did_res.iloc[i]['qid']
-                  if visited.iloc[int(qid2)-1]['visited'] == False:
+                  if ids.iloc[int(qid2)-1]['id'] == False:
                     docnos.add(qid2)
-                    visited.iloc[int(qid2)-1]['visited'] = True
+                    ids.iloc[int(qid2)-1]['id'] = id_count
+                    dids.append(id_count)
+                    id_count += 1
                   else:
-                    docnos.add(qid2 + f'_{count}')
+                    docnos.add(f'_{count}')
+                    dids.append(ids.iloc[int(qid2)-1]['id'])
                     count += 1
-                dids = docnos.inv[list(did_res.docno)]
+                    id_count += 1
             # pad missing docids / edges
             if len(dids) < k:
-              dids += [docnos.inv[docno]] * (k - len(dids))  
+              dids += [id_count - len(did_res.index)] * (k - len(dids))
               for i in range(k - len(did_res.index)):
-                  docnos.add(did_res.iloc[i]['qid'] + f'_{count}')
+                  docnos.add(f'_{count}')
                   count += 1
             # write neighbours
             fe.write(np.array(dids, dtype=np.uint32).tobytes())
