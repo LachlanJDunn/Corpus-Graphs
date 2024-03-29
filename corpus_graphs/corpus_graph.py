@@ -103,32 +103,32 @@ class CorpusGraph:
     # First step: We need a docno <-> index mapping for this to work. Do a pass over the iterator
     # to build a docno loookup file, while also writing the contents to a temporary file that we'll read
     # in the next loop. (This avoids loading the entire iterator into memory.)
-    with tempfile.TemporaryDirectory() as dout:
-      with LZ4FrameFile(f'{dout}/docs.pkl.lz4', 'wb') as fout, Lookup.builder(out_dir/'docnos.npids') as docno_builder:
+    with tempfile.TemporaryDirectory() as dout: # create temp directory to store
+      with LZ4FrameFile(f'{dout}/docs.pkl.lz4', 'wb') as fout, Lookup.builder(out_dir/'docnos.npids') as docno_builder: # write to temp file and lookup outdir
         for doc in logger.pbar(docs_it, miniters=1, smoothing=0, desc='first pass'):
-          pickle.dump(doc, fout)
-          docno_builder.add(doc['docno'])
+          pickle.dump(doc, fout) # write serialized docs to temp file
+          docno_builder.add(doc['docno']) #add doc to doc->id mapping
       docnos = Lookup(out_dir/'docnos.npids')
 
       # Now read out everything in the file and retrieve using each one. Do this in batches for efficiency.
       with ir_datasets.util.finialized_file(str(edges_path), 'wb') as fe, ir_datasets.util.finialized_file(str(weights_path), 'wb') as fw, LZ4FrameFile(f'{dout}/docs.pkl.lz4', 'rb') as fin:
         for chunk in more_itertools.chunked(logger.pbar(range(len(docnos)), miniters=1, smoothing=0, desc='searching', total=len(docnos)), batch_size):
-          chunk = [pickle.load(fin) for _ in chunk]
-          res = retriever(pd.DataFrame(chunk).rename(columns={'docno': 'qid', 'text': 'query'}))
-          res_by_qid = dict(iter(res.groupby('qid')))
-          for docno in [c['docno'] for c in chunk]:
-            did_res = res_by_qid.get(docno)
+          chunk = [pickle.load(fin) for _ in chunk] # creates list of docs
+          res = retriever(pd.DataFrame(chunk).rename(columns={'docno': 'qid', 'text': 'query'})) # result of retrieval of one chunk
+          res_by_qid = dict(iter(res.groupby('qid'))) # mapping of qid to query/docno/docno/score/rank (as multiple queries in chunk)
+          for docno in [c['docno'] for c in chunk]: # loops through docnos in chunk
+            did_res = res_by_qid.get(docno) # results for one query (ie. document)
             dids, scores = [], []
             if did_res is not None:
-              did_res = did_res[did_res.docno != docno].iloc[:k]
+              did_res = did_res[did_res.docno != docno].iloc[:k] # top k results excluding document itself
               if len(did_res) > 0:
                 dids = docnos.inv[list(did_res.docno)]
                 scores = list(did_res.score)
             if len(dids) < k: # if we didn't get as many as we expect, loop the document back to itself.
-              dids += [docnos.inv[docno]] * (k - len(dids))
+              dids += [docnos.inv[docno]] * (k - len(dids)) # stores dids in npids form
               scores += [0.] * (k - len(scores))
-            fe.write(np.array(dids, dtype=np.uint32).tobytes())
-            fw.write(np.array(scores, dtype=np.float16).tobytes())
+            fe.write(np.array(dids, dtype=np.uint32).tobytes()) # write neighbours
+            fw.write(np.array(scores, dtype=np.float16).tobytes()) # write scores
 
     # Finally, keep track of metadata about this artefact.
     with (out_dir/'pt_meta.json').open('wt') as fout:
