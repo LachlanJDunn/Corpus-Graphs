@@ -117,7 +117,7 @@ class CorpusGraph:
       json.dump({
           'type': 'corpus_graph',
           'format': 'np_topk',
-          'doc_count': len(docnos),
+          'doc_count': 11429,
           'k': k,
       }, fout)
 
