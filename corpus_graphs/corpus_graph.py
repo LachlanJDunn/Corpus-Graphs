@@ -13,7 +13,7 @@ import ir_datasets
 from npids import Lookup
 import IPython
 
-# converts getter/setter to attribute of instance
+
 try:
   from functools import cached_property
 except ImportError:
@@ -144,7 +144,6 @@ class CorpusGraph:
 
 class NpTopKCorpusGraph(CorpusGraph):
   def __init__(self, path, k=None):
-    # loads meta data and checks in correct form
     self.path = Path(path)
     with (self.path/'pt_meta.json').open('rt') as fin:
       self.meta = json.load(fin)

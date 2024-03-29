@@ -55,25 +55,22 @@ class GAR(pt.Transformer):
         result = {'qid': [], 'query': [], 'docno': [], 'rank': [], 'score': [], 'iteration': []}
 
         #provides dictionary of qid: data (ie. query, rank, score etc.)
-        '''print(df)'''
         df = dict(iter(df.groupby(by=['qid'])))
-        '''print(df)'''
         qids = df.keys()
 
         #adds progress bar
         if self.verbose:
             qids = logger.pbar(qids, desc='adaptive re-ranking', unit='query')
-        '''print(qids)'''
+        
         for qid in qids:
             query = df[qid]['query'].iloc[0]
             scores = {}
             res_map = [Counter(dict(zip(df[qid].docno, df[qid].score)))] # initial results (from first round)
-            '''print(res_map)'''
             if self.enabled:
                 res_map.append(Counter()) # frontier
             frontier_data = {'minscore': float('inf')} #ignores lower scored documents if budget is exceeded
             iteration = 0
-            #while not all rescored and either frontier/results not empty
+            #while not all rescored and either frontier/initial retrieval not empty
             while len(scores) < self.num_results and any(r for r in res_map):
                 if len(res_map[iteration%len(res_map)]) == 0:
                     # skip if results map / frontier is empty (and go to next one)
@@ -81,19 +78,9 @@ class GAR(pt.Transformer):
                     continue
                 this_res = res_map[iteration%len(res_map)] # alternate between the initial ranking and frontier (dict from id to score)
                 size = min(self.batch_size, self.num_results - len(scores)) # get either the batch size or remaining budget (whichever is smaller)
-                '''print(this_res)'''
                 # build batch of documents to score in this round
                 batch = this_res.most_common(size) #takes size number of documents and orders by highest score 
                 batch = pd.DataFrame(batch, columns=['docno', 'score'])
-                '''print(batch)
-                print(qid)
-                print(query)'''
-                #batch['qid'] = qid #labels with qid and query
-                #batch['query'] = query
-                '''print(type(qid))
-                print(len(qid))
-                print(qid[0])
-                print(type(qid[0]))'''
                 batch['qid'] = [qid for i in range(len(batch.index))]  # labels with qid and query
                 batch['query'] = [query for i in range(len(batch.index))]
 
@@ -140,7 +127,7 @@ class GAR(pt.Transformer):
     def _update_frontier(self, scored_batch, frontier, frontier_data, scored_dids):
         remaining_budget = self.num_results - len(scored_dids) #total number of documents remaining to score
         for score, did in sorted(zip(scored_batch.score, scored_batch.docno), reverse=True): #loop through highest to lowest scores
-            if len(frontier) < remaining_budget or score >= frontier_data['minscore']:
+            if len(frontier) < remaining_budget or score >= frontier_data['minscore']: #if more space or score higher than previous lowest added score
                 hit = False
                 for target_did in self.corpus_graph.neighbours(did): #loop through neighbours
                     if target_did not in scored_dids:
