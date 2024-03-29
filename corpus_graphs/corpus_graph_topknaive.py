@@ -90,12 +90,13 @@ class CorpusGraph:
               did_res = did_res[did_res.docno != docno].iloc[:k]
               if len(did_res) > 0:
                 for i in range(len(did_res.index)):
-                  try:
-                    docnos[did_res.iloc[i]['qid']]
-                    docnos.add(did_res.iloc[i]['qid'] + f'_{count}')
+                  qid2 = did_res.iloc[i]['qid']
+                  if visited.iloc[int(qid2)-1]['visited'] == False:
+                    docnos.add(qid2)
+                    visited.iloc[int(qid2)-1]['visited'] = True
+                  else:
+                    docnos.add(qid2 + f'_{count}')
                     count += 1
-                  except ZeroDivisionError:
-                    docnos.add(did_res.iloc[i]['qid'])
                 dids = docnos.inv[list(did_res.docno)]
             # pad missing docids / edges
             if len(dids) < k:
