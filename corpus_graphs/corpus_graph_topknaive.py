@@ -63,7 +63,6 @@ class CorpusGraph:
     id_count = 0
     count = 0
     temp = 0
-    temp2 = 0
     temp3 = []
 
     # First step: We need a docno <-> index mapping for this to work. Do a pass over the iterator
@@ -96,6 +95,7 @@ class CorpusGraph:
             if did_res is not None:
               # top k results
               did_res = did_res.iloc[:k]
+              print(len(did_res))
               append_doc = False
               if docno not in did_res['docno']:
                 append_doc = True
@@ -120,6 +120,7 @@ class CorpusGraph:
                     id_count += 1
             # pad missing docids / edges
             if len(dids) < k:
+              print(dids)
               if did_res is None:
                 dids += [id_count] * (k - len(dids))
                 for i in range(k):
@@ -132,12 +133,10 @@ class CorpusGraph:
                   count += 1
             # write neighbours
             fe.write(np.array(dids, dtype=np.uint32).tobytes())
-            temp2 += 1
             if len(dids) not in temp3:
               temp3.append(len(dids))
               print(dids)
     print(temp)
-    print(temp2)
     print(temp3)
     # Finally, keep track of metadata about this artefact.
     with (out_dir/'pt_meta.json').open('wt') as fout:
