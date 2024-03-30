@@ -79,7 +79,9 @@ class CorpusGraph:
           chunk_df = pd.DataFrame(chunk).rename(columns={'docno': 'qid', 'text': 'query'})
           to_drop = ids.iloc[[int(i)-1 for i in chunk_df.qid.to_numpy()]]
           to_drop = to_drop.loc[to_drop['id'] != -1]
+          print('chunk: ' + str(chunk_df.index))
           chunk_df = chunk_df.drop(to_drop.index) # remove already scored documents
+          print('chunk after: ' + str(chunk_df.index))
           res = retriever(chunk_df)  # result of retrieval of one chunk
           # mapping of qid to query/docno/docno/score/rank (as multiple queries in chunk)
           res_by_qid = dict(iter(res.groupby('qid')))
