@@ -89,7 +89,7 @@ class CorpusGraph:
           res = retriever(chunk_df)  # result of retrieval of one chunk
           # mapping of qid to query/docno/docno/score/rank (as multiple queries in chunk)
           res_by_qid = dict(iter(res.groupby('qid')))
-          for docno in [c['docno'] for c in chunk]:  # loops through docnos in chunk
+          for docno in chunk_df['qid']:  # loops through docnos in chunk
             # results for one query (ie. document)
             did_res = res_by_qid.get(docno)
             dids = []
@@ -135,6 +135,7 @@ class CorpusGraph:
             temp2 += 1
             if len(dids) not in temp3:
               temp3.append(len(dids))
+              print(dids)
     print(temp)
     print(temp2)
     print(temp3)
