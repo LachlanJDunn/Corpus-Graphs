@@ -95,7 +95,6 @@ class CorpusGraph:
             if did_res is not None:
               # top k results
               did_res = did_res.iloc[:k]
-              print(len(did_res))
               append_doc = False
               if docno not in did_res['docno']:
                 append_doc = True
@@ -106,18 +105,18 @@ class CorpusGraph:
                     ids.loc[int(docno)-1, 'id'] = id_count
                     dids.append(id_count)
                     id_count += 1
-                    pass
-                  docno2 = did_res.iloc[i]['docno']
-                  if ids.iloc[int(docno2)-1]['id'] == -1:
-                    docnos.add(docno2)
-                    ids.loc[int(docno2)-1, 'id'] = id_count
-                    dids.append(id_count)
-                    id_count += 1
                   else:
-                    docnos.add(f'_{count}')
-                    dids.append(ids.iloc[int(docno2)-1]['id'])
-                    count += 1
-                    id_count += 1
+                    docno2 = did_res.iloc[i]['docno']
+                    if ids.iloc[int(docno2)-1]['id'] == -1:
+                        docnos.add(docno2)
+                        ids.loc[int(docno2)-1, 'id'] = id_count
+                        dids.append(id_count)
+                        id_count += 1
+                    else:
+                        docnos.add(f'_{count}')
+                        dids.append(ids.iloc[int(docno2)-1]['id'])
+                        count += 1
+                        id_count += 1
             # pad missing docids / edges
             if len(dids) < k:
               print(dids)
