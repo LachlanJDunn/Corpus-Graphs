@@ -59,7 +59,8 @@ class CorpusGraph:
     edges_path = out_dir/'edges.u32.np'
     weights_path = out_dir/'weights.f16.np'
 
-    ids = pd.DataFrame(data={'id': [-1 for i in range(11429)]})
+    doc_size = 8841823
+    ids = pd.DataFrame(data={'id': [-1 for i in range(doc_size)]})
     id_count = 0
     count = 0
     temp = 0
@@ -75,7 +76,7 @@ class CorpusGraph:
 
       # Perform retrieval in chunks for efficiency
       with ir_datasets.util.finialized_file(str(edges_path), 'wb') as fe, ir_datasets.util.finialized_file(str(weights_path), 'wb') as fw, LZ4FrameFile(f'{dout}/docs.pkl.lz4', 'rb') as fin, Lookup.builder(out_dir/'docnos.npids') as docnos:
-        for chunk in more_itertools.chunked(logger.pbar(range(11429), miniters=1, smoothing=0, desc='searching', total=11429), batch_size):
+        for chunk in more_itertools.chunked(logger.pbar(range(doc_size), miniters=1, smoothing=0, desc='searching', total=doc_size), batch_size):
           chunk = [pickle.load(fin) for _ in chunk]  # creates list of docs
           chunk_df = pd.DataFrame(chunk).rename(
               columns={'docno': 'qid', 'text': 'query'})
@@ -137,7 +138,7 @@ class CorpusGraph:
       json.dump({
           'type': 'corpus_graph',
           'format': 'np_topk',
-          'doc_count': 11429,
+          'doc_count': doc_size,
           'k': k,
       }, fout)
 
