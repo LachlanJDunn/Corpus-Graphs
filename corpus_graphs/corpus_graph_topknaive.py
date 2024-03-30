@@ -62,6 +62,8 @@ class CorpusGraph:
     ids = pd.DataFrame(data={'id': [-1 for i in range(11429)]})
     id_count = 0
     count = 0
+    temp = 0
+    temp2 = []
 
     # First step: We need a docno <-> index mapping for this to work. Do a pass over the iterator
     # to build a docno loookup file, while also writing the contents to a temporary file that we'll read
@@ -76,12 +78,13 @@ class CorpusGraph:
       with ir_datasets.util.finialized_file(str(edges_path), 'wb') as fe, ir_datasets.util.finialized_file(str(weights_path), 'wb') as fw, LZ4FrameFile(f'{dout}/docs.pkl.lz4', 'rb') as fin, Lookup.builder(out_dir/'docnos.npids') as docnos:
         for chunk in more_itertools.chunked(logger.pbar(range(11429), miniters=1, smoothing=0, desc='searching', total=11429), batch_size):
           chunk = [pickle.load(fin) for _ in chunk]  # creates list of docs
-          chunk_df = pd.DataFrame(chunk).rename(columns={'docno': 'qid', 'text': 'query'})
+          chunk_df = pd.DataFrame(chunk).rename(
+              columns={'docno': 'qid', 'text': 'query'})
           to_drop = ids.iloc[[int(i)-1 for i in chunk_df.qid.to_numpy()]]
           to_drop = to_drop.loc[to_drop['id'] != -1]
-          print('chunk: ' + str(chunk_df.index))
-          chunk_df = chunk_df.drop(to_drop.index) # remove already scored documents
-          print('chunk after: ' + str(chunk_df.index))
+          # remove already scored documents
+          chunk_df = chunk_df.drop([i % batch_size for i in to_drop.index])
+          temp += len(chunk_df.index)
           res = retriever(chunk_df)  # result of retrieval of one chunk
           # mapping of qid to query/docno/docno/score/rank (as multiple queries in chunk)
           res_by_qid = dict(iter(res.groupby('qid')))
@@ -90,30 +93,50 @@ class CorpusGraph:
             did_res = res_by_qid.get(docno)
             dids = []
             if did_res is not None:
-              # top k results excluding document itself
-              did_res = did_res[did_res.docno != docno].iloc[:k]
+              # top k results
+              did_res = did_res.iloc[:k]
+              append_doc = False
+              if docno not in did_res['docno']:
+                append_doc = True
               if len(did_res) > 0:
                 for i in range(len(did_res.index)):
-                  qid2 = did_res.iloc[i]['qid']
-                  if ids.iloc[int(qid2)-1]['id'] == -1:
-                    docnos.add(qid2)
-                    ids.loc[int(qid2)-1, 'id'] = id_count
+                  if append_doc == True and i == len(did_res.index) - 1:
+                    docnos.add(docno)
+                    ids.loc[int(docno)-1, 'id'] = id_count
                     dids.append(id_count)
                     id_count += 1
+                    temp2.append(docno)
+                    pass
+                  docno2 = did_res.iloc[i]['docno']
+                  if ids.iloc[int(docno2)-1]['id'] == -1:
+                    docnos.add(docno2)
+                    ids.loc[int(docno2)-1, 'id'] = id_count
+                    dids.append(id_count)
+                    id_count += 1
+                    temp2.append(docno2)
                   else:
                     docnos.add(f'_{count}')
-                    dids.append(ids.iloc[int(qid2)-1]['id'])
+                    dids.append(ids.iloc[int(docno2)-1]['id'])
                     count += 1
                     id_count += 1
             # pad missing docids / edges
             if len(dids) < k:
-              dids += [id_count - len(did_res.index)] * (k - len(dids))
-              for i in range(k - len(did_res.index)):
+              if did_res is None:
+                dids += [id_count] * (k - len(dids))
+                for i in range(k):
+                  docnos.add(f'_{count}')
+                  count += 1
+              else:
+                dids += [id_count - len(did_res.index)] * (k - len(dids))
+                for i in range(k - len(did_res.index)):
                   docnos.add(f'_{count}')
                   count += 1
             # write neighbours
             fe.write(np.array(dids, dtype=np.uint32).tobytes())
-
+    print(temp)
+    for i in range(11429):
+        if str(i) not in temp2:
+            print(i)
     # Finally, keep track of metadata about this artefact.
     with (out_dir/'pt_meta.json').open('wt') as fout:
       json.dump({
@@ -167,7 +190,7 @@ class NpTopKCorpusGraph(CorpusGraph):
     as_str = isinstance(docid, str)
     if as_str:
       docid = self._docnos.inv[docid]
-      docid = (docid - (docid % self.meta['k'])) / self.meta['k']
+      docid = docid // self.meta['k']
     neigh = self.edges_data[docid]
     if as_str:
       neigh = self._docnos.fwd[neigh]
