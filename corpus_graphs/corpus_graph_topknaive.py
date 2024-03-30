@@ -63,7 +63,6 @@ class CorpusGraph:
     id_count = 0
     count = 0
     temp = 0
-    temp2 = []
 
     # First step: We need a docno <-> index mapping for this to work. Do a pass over the iterator
     # to build a docno loookup file, while also writing the contents to a temporary file that we'll read
@@ -105,7 +104,6 @@ class CorpusGraph:
                     ids.loc[int(docno)-1, 'id'] = id_count
                     dids.append(id_count)
                     id_count += 1
-                    temp2.append(docno)
                     pass
                   docno2 = did_res.iloc[i]['docno']
                   if ids.iloc[int(docno2)-1]['id'] == -1:
@@ -113,7 +111,6 @@ class CorpusGraph:
                     ids.loc[int(docno2)-1, 'id'] = id_count
                     dids.append(id_count)
                     id_count += 1
-                    temp2.append(docno2)
                   else:
                     docnos.add(f'_{count}')
                     dids.append(ids.iloc[int(docno2)-1]['id'])
@@ -134,9 +131,6 @@ class CorpusGraph:
             # write neighbours
             fe.write(np.array(dids, dtype=np.uint32).tobytes())
     print(temp)
-    for i in range(11429):
-        if str(i) not in temp2:
-            print(i)
     # Finally, keep track of metadata about this artefact.
     with (out_dir/'pt_meta.json').open('wt') as fout:
       json.dump({
