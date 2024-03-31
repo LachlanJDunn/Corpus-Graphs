@@ -58,7 +58,7 @@ class CorpusGraph:
     out_dir.mkdir(parents=True)
     edges_path = out_dir/'edges.u32.np'
 
-    doc_size = 8841823
+    doc_size = 0
     id_list = []
     id_count = 0
     scored_count = 0
@@ -71,7 +71,8 @@ class CorpusGraph:
       with LZ4FrameFile(f'{dout}/docs.pkl.lz4', 'wb') as fout:
         for doc in logger.pbar(docs_it, miniters=1, smoothing=0, desc='first pass'):
           pickle.dump(doc, fout)  # write serialized docs to temp file
-          id_list.append(int(doc['doc_id']))
+          id_list.append(int(doc['docno']))
+      doc_size = len(id_list)
       ids = pd.DataFrame(data={'id': [-1 for i in range(doc_size)]}, index=id_list)
 
       # Perform retrieval in chunks for efficiency
