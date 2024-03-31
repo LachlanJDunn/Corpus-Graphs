@@ -71,7 +71,7 @@ class CorpusGraph:
       with LZ4FrameFile(f'{dout}/docs.pkl.lz4', 'wb') as fout:
         for doc in logger.pbar(docs_it, miniters=1, smoothing=0, desc='first pass'):
           pickle.dump(doc, fout)  # write serialized docs to temp file
-          id_list.append(int(doc['docno']))
+          id_list.append(doc['docno'])
       doc_size = len(id_list)
       ids = pd.DataFrame(data={'id': [-1 for i in range(doc_size)]}, index=id_list)
 
@@ -81,9 +81,8 @@ class CorpusGraph:
           chunk = [pickle.load(fin) for _ in chunk]  # creates list of docs
           chunk_df = pd.DataFrame(chunk).rename(
               columns={'docno': 'qid', 'text': 'query'})
-          to_drop = ids.loc[[int(i) for i in chunk_df.qid.to_numpy()]]
-          to_drop = to_drop.loc[to_drop['id'] != -1]
-          to_drop = [str(i) for i in to_drop.index]
+          to_drop = ids.loc[[i for i in chunk_df.qid.to_numpy()]]
+          to_drop = to_drop.loc[to_drop['id'] != -1].index
           # remove already scored documents
           chunk_df = chunk_df.loc[~chunk_df['qid'].isin(to_drop)]
           scored_count += len(chunk_df.index)
@@ -99,26 +98,26 @@ class CorpusGraph:
               # top k results
               did_res = did_res.iloc[:k]
               append_doc = False
-              if docno not in did_res['docno'].to_numpy() and ids.loc[int(docno), 'id'] == -1:
+              if docno not in did_res['docno'].to_numpy() and ids.loc[docno, 'id'] == -1:
                 append_doc = True
               if len(did_res) > 0:
                 for i in range(len(did_res.index)):
                   if append_doc == True and i == len(did_res.index) - 1:
                     docnos.add(docno)
                     new_docs_count += 1
-                    ids.loc[int(docno), 'id'] = id_count
+                    ids.loc[docno, 'id'] = id_count
                     dids.append(id_count)
                     id_count += 1
                   else:
                     docno2 = did_res.iloc[i]['docno']
-                    if ids.loc[int(docno2), 'id'] == -1:
+                    if ids.loc[docno2, 'id'] == -1:
                         docnos.add(docno2)
                         new_docs_count += 1
-                        ids.loc[int(docno2), 'id'] = id_count
+                        ids.loc[docno2, 'id'] = id_count
                         dids.append(id_count)
                         id_count += 1
                     else:
-                        dids.append(ids.loc[int(docno2), 'id'])
+                        dids.append(ids.loc[docno2, 'id'])
             # pad missing docids
             if len(dids) < k:
               if did_res is None:
