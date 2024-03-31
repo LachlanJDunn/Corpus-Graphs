@@ -70,8 +70,6 @@ class CorpusGraph:
       # write to temp file and lookup outdir
       with LZ4FrameFile(f'{dout}/docs.pkl.lz4', 'wb') as fout:
         for doc in logger.pbar(docs_it, miniters=1, smoothing=0, desc='first pass'):
-          if 'abstract' in doc.keys():
-            doc = {'docno': doc['docno'], 'text': doc['abstract']}
           pickle.dump(doc, fout)  # write serialized docs to temp file
           id_list.append(doc['docno'])
       doc_size = len(id_list)
