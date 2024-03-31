@@ -71,7 +71,7 @@ class CorpusGraph:
       with LZ4FrameFile(f'{dout}/docs.pkl.lz4', 'wb') as fout:
         for doc in logger.pbar(docs_it, miniters=1, smoothing=0, desc='first pass'):
           pickle.dump(doc, fout)  # write serialized docs to temp file
-          id_list.append(int(doc.doc_id))
+          id_list.append(int(doc['doc_id']))
       ids = pd.DataFrame(data={'id': [-1 for i in range(doc_size)]}, index=id_list)
 
       # Perform retrieval in chunks for efficiency
