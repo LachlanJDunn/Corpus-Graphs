@@ -171,7 +171,6 @@ class NpTopKCorpusGraph(CorpusGraph):
     as_str = isinstance(docid, str)
     if as_str:
       docid = self._docnos.inv[docid]
-      docid = docid // self.meta['k']
     neigh = self.edges_data[docid]
     if as_str:
       neigh = self._docnos.fwd[neigh]
