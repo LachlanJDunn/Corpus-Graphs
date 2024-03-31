@@ -83,8 +83,9 @@ class CorpusGraph:
               columns={'docno': 'qid', 'text': 'query'})
           to_drop = ids.loc[[int(i) for i in chunk_df.qid.to_numpy()]]
           to_drop = to_drop.loc[to_drop['id'] != -1]
+          to_drop = [str(i) for i in to_drop.index]
           # remove already scored documents
-          chunk_df = chunk_df.drop(to_drop.index)
+          chunk_df = chunk_df.loc[~chunk_df['qid'].isin(to_drop)]
           scored_count += len(chunk_df.index)
           res = retriever(chunk_df)  # result of retrieval of one chunk
           # mapping of qid to query/docno/docno/score/rank (as multiple queries in chunk)
@@ -98,7 +99,7 @@ class CorpusGraph:
               # top k results
               did_res = did_res.iloc[:k]
               append_doc = False
-              if docno not in did_res['docno']:
+              if docno not in did_res['docno'].to_numpy() and ids.loc[int(docno), 'id'] == -1:
                 append_doc = True
               if len(did_res) > 0:
                 for i in range(len(did_res.index)):
@@ -109,7 +110,7 @@ class CorpusGraph:
                     dids.append(id_count)
                     id_count += 1
                   else:
-                    docno2 = did_res.loc[i, 'docno']
+                    docno2 = did_res.iloc[i]['docno']
                     if ids.loc[int(docno2), 'id'] == -1:
                         docnos.add(docno2)
                         new_docs_count += 1
