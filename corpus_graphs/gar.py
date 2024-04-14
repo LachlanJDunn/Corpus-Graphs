@@ -4,6 +4,7 @@ from collections import Counter
 import pyterrier as pt
 import pandas as pd
 import ir_datasets
+import csv
 logger = ir_datasets.log.easy()
 
 
@@ -25,7 +26,8 @@ class GAR(pt.Transformer):
         batch_size: Optional[int] = None,
         backfill: bool = True,
         enabled: bool = True,
-        verbose: bool = False):
+        verbose: bool = False,
+        collect_data: bool = False):
         """
             GAR init method
             Args:
@@ -37,6 +39,7 @@ class GAR(pt.Transformer):
                 enabled(bool): If False, perform re-ranking without using the corpus graph
                 verbose(bool): If True, print progress information
         """
+        self.collect_data = collect_data
         self.scorer = scorer
         self.corpus_graph = corpus_graph
         self.num_results = num_results
@@ -54,6 +57,9 @@ class GAR(pt.Transformer):
         """
         result = {'qid': [], 'query': [], 'docno': [], 'rank': [], 'score': [], 'iteration': []}
 
+        locations = []
+
+
         #provides dictionary of qid: data (ie. query, rank, score etc.)
         df = dict(iter(df.groupby(by=['qid'])))
         qids = df.keys()
@@ -63,6 +69,10 @@ class GAR(pt.Transformer):
             qids = logger.pbar(qids, desc='adaptive re-ranking', unit='query')
         
         for qid in qids:
+            if self.collect_data:
+                doc_location = {}
+                for index, doc in df[qid].iterrows():
+                    doc_location[doc.docno] = (0, index)
             query = df[qid]['query'].iloc[0]
             scores = {}
             res_map = [Counter(dict(zip(df[qid].docno, df[qid].score)))] # initial results (from first round)
@@ -89,7 +99,7 @@ class GAR(pt.Transformer):
                 scores.update({k: (s, iteration) for k, s in zip(batch.docno, batch.score)}) #update information in form: docno: (score, iteration)
                 self._drop_docnos_from_counters(batch.docno, res_map)
                 if len(scores) < self.num_results and self.enabled: #if more documents to rescore
-                    self._update_frontier(batch, res_map[1], frontier_data, scores)
+                    self._update_frontier(batch, res_map[1], frontier_data, scores, doc_location)
                 iteration += 1
 
             # Add scored items to results
@@ -114,7 +124,13 @@ class GAR(pt.Transformer):
                     result['docno'].append(did)
                     result['score'].append(last_score - 1 - i)
                     result['iteration'].append(-1)
-
+        if self.collect_data:
+            for index, docno in enumerate(result['docno']):
+                locations.append({'in_location': doc_location[docno], 'out_location': result['rank'][index]})
+            with open('location_data.csv', 'w') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=['in_location', 'out_location'])
+                writer.writeheader()
+                writer.writerows(locations)
         return pd.DataFrame({
             'qid': np.concatenate(result['qid']),
             'query': np.concatenate(result['query']),
@@ -124,17 +140,21 @@ class GAR(pt.Transformer):
             'iteration': result['iteration'],
         })
 
-    def _update_frontier(self, scored_batch, frontier, frontier_data, scored_dids):
+    def _update_frontier(self, scored_batch, frontier, frontier_data, scored_dids, doc_location):
         remaining_budget = self.num_results - len(scored_dids) #total number of documents remaining to score
         for score, did in sorted(zip(scored_batch.score, scored_batch.docno), reverse=True): #loop through highest to lowest scores
             if len(frontier) < remaining_budget or score >= frontier_data['minscore']: #if more space or score higher than previous lowest added score
                 hit = False
+                count = 1
                 for target_did in self.corpus_graph.neighbours(did): #loop through neighbours
                     if target_did not in scored_dids:
                         # updates score of neighbour to highest score of its already scored neighbours
                         if target_did not in frontier or score > frontier[target_did]:
                             frontier[target_did] = score
                             hit = True
+                            if self.collect_data:
+                                doc_location[target_did] = (doc_location[did][1], count)
+                    count += 1
                 if hit and score < frontier_data['minscore']:
                     frontier_data['minscore'] = score
 
