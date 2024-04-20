@@ -58,6 +58,7 @@ class GAR(pt.Transformer):
         result = {'qid': [], 'query': [], 'docno': [], 'rank': [], 'score': [], 'iteration': []}
 
         locations = []
+        doc_location_by_qid = {}
 
 
         #provides dictionary of qid: data (ie. query, rank, score etc.)
@@ -70,9 +71,10 @@ class GAR(pt.Transformer):
         
         for qid in qids:
             if self.collect_data:
+                # format: (row, column)
                 doc_location = {}
                 for index, doc in df[qid].iterrows():
-                    doc_location[doc.docno] = (0, index)
+                    doc_location[doc.docno] = (index, 0)
             query = df[qid]['query'].iloc[0]
             scores = {}
             res_map = [Counter(dict(zip(df[qid].docno, df[qid].score)))] # initial results (from first round)
@@ -124,9 +126,14 @@ class GAR(pt.Transformer):
                     result['docno'].append(did)
                     result['score'].append(last_score - 1 - i)
                     result['iteration'].append(-1)
+            if self.collect_data:
+                doc_location_by_qid[qid] = doc_location
         if self.collect_data:
-            for index, docno in enumerate(result['docno']):
-                locations.append({'in_location': doc_location[docno], 'out_location': result['rank'][index]})
+            qids = np.concatenate(result['qid'])
+            docnos = np.concatenate(result['docno'])
+            for index, qid in enumerate(np.nditer(qids)):
+                locations.append(
+                    {'in_location': doc_location_by_qid[qid][docnos.iloc[index]], 'out_location': np.concatenate(result['rank']).loc[index]})
             with open('location_data.csv', 'w') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=['in_location', 'out_location'])
                 writer.writeheader()
@@ -152,8 +159,8 @@ class GAR(pt.Transformer):
                         if target_did not in frontier or score > frontier[target_did]:
                             frontier[target_did] = score
                             hit = True
-                            if self.collect_data:
-                                doc_location[target_did] = (doc_location[did][1], count)
+                            if self.collect_data and target_did not in doc_location:
+                                doc_location[target_did] = (doc_location[did][0], count)
                     count += 1
                 if hit and score < frontier_data['minscore']:
                     frontier_data['minscore'] = score
