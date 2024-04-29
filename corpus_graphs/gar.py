@@ -73,8 +73,10 @@ class GAR(pt.Transformer):
             if self.collect_data:
                 # format: (row, column)
                 doc_location = {}
+                count = 0
                 for index, doc in df[qid].iterrows():
-                    doc_location[doc.docno] = (index, 0)
+                    doc_location[doc.docno] = (count, 0)
+                    count += 1
             query = df[qid]['query'].iloc[0]
             scores = {}
             res_map = [Counter(dict(zip(df[qid].docno, df[qid].score)))] # initial results (from first round)
@@ -127,13 +129,13 @@ class GAR(pt.Transformer):
                     result['score'].append(last_score - 1 - i)
                     result['iteration'].append(-1)
             if self.collect_data:
-                doc_location_by_qid[qid] = doc_location
+                doc_location_by_qid[qid[0]] = doc_location
         if self.collect_data:
             qids = np.concatenate(result['qid'])
-            docnos = np.concatenate(result['docno'])
-            for index, qid in enumerate(np.nditer(qids)):
+            docnos = result['docno']
+            for index, qid in enumerate(qids):
                 locations.append(
-                    {'in_location': doc_location_by_qid[qid][docnos.iloc[index]], 'out_location': np.concatenate(result['rank']).loc[index]})
+                    {'in_location': doc_location_by_qid[qid][docnos[index]], 'out_location': np.concatenate(result['rank'])[index]})
             with open('location_data.csv', 'w') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=['in_location', 'out_location'])
                 writer.writeheader()
