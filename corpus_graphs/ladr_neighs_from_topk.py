@@ -63,6 +63,7 @@ class GAR(pt.Transformer):
 
         locations = []
         doc_location_by_qid = {}
+        doc_location = {}
 
         # provides dictionary of qid: data (ie. query, rank, score etc.)
         df = dict(iter(df.groupby(by=['qid'])))
@@ -80,20 +81,23 @@ class GAR(pt.Transformer):
                 for index, doc in df[qid].iterrows():
                     doc_location[doc.docno] = (count, 0)
                     count += 1
+            size = round(len(df[qid]) / 10)
             query = df[qid]['query'].iloc[0]
             scores = {}
             # initial results (from first round)
             res_map = [Counter(dict(zip(df[qid].docno, df[qid].score)))]
             if self.enabled:
-                res_map.append(Counter()) 
-            
+                res_map.append(Counter())
+
             batch = self.scorer(df[qid])
             self.scored_count += len(batch)
             scores.update({k: (s, 0)
                            for k, s in zip(batch.docno, batch.score)})
             self._drop_docnos_from_counters(batch.docno, res_map)
-            self._update_frontier(df[qid], res_map[1], doc_location)
-            batch = pd.DataFrame(res_map[1].most_common(), columns=['docno', 'score'])
+            topk = batch.sort_values(by=['score'], ascending=False).head(size)
+            self._update_frontier(topk, res_map[1], doc_location)
+            batch = pd.DataFrame(
+                res_map[1].most_common(), columns=['docno', 'score'])
             batch['qid'] = [qid for i in range(len(batch.index))]
             batch['query'] = [query for i in range(len(batch.index))]
             batch = self.scorer(batch)
