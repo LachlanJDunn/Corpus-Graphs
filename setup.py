@@ -13,7 +13,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/LachlanJDunn/Corpus-Graphs",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(include=['corpus_graphs']),
     install_requires=list(open('requirements.txt')),
     classifiers=[],
     python_requires='>=3.6',
