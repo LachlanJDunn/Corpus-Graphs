@@ -8,25 +8,13 @@ import csv
 logger = ir_datasets.log.easy()
 
 
-class GAR(pt.Transformer):
-    """
-    A transformer that implements the Graph-based Adaptive Re-ranker algorithm from
-    MacAvaney et al. "Adaptive Re-Ranking with a Corpus Graph" CIKM 2022.
-
-    Required input columns: ['qid', 'query', 'docno', 'score', 'rank']
-    Output columns: ['qid', 'query', 'docno', 'score', 'rank', 'iteration']
-    where iteration defines the batch number which identified the document. Specifically
-    even=initial retrieval   odd=corpus graph    -1=backfilled
-    
-    """
-
+class CORPUS_ALGORITHM(pt.Transformer):
     def __init__(self,
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
                  num_results: int = 1000,
                  batch_size: Optional[int] = None,
                  backfill: bool = True,
-                 enabled: bool = True,
                  verbose: bool = False,
                  collect_data: bool = False):
         """
@@ -37,7 +25,6 @@ class GAR(pt.Transformer):
                 num_results(int): The maximum number of documents to score (called "budget" and $c$ in the paper)
                 batch_size(int): The number of documents to score at once (called $b$ in the paper). If not provided, will attempt to use the batch size from the scorer
                 backfill(bool): If True, always include all documents from the initial stage, even if they were not re-scored
-                enabled(bool): If False, perform re-ranking without using the corpus graph
                 verbose(bool): If True, print progress information
         """
         self.collect_data = collect_data
@@ -50,7 +37,6 @@ class GAR(pt.Transformer):
                 scorer, 'batch_size') else 16
         self.batch_size = batch_size
         self.backfill = backfill
-        self.enabled = enabled
         self.verbose = verbose
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -68,7 +54,6 @@ class GAR(pt.Transformer):
         df = dict(iter(df.groupby(by=['qid'])))
         qids = df.keys()
 
-        # adds progress bar
         if self.verbose:
             qids = logger.pbar(qids, desc='adaptive re-ranking', unit='query')
 
@@ -83,9 +68,7 @@ class GAR(pt.Transformer):
             query = df[qid]['query'].iloc[0]
             scores = {}
             # initial results (from first round)
-            res_map = [Counter(dict(zip(df[qid].docno, df[qid].score)))]
-            if self.enabled:
-                res_map.append(Counter()) 
+            res_map = [Counter(dict(zip(df[qid].docno, df[qid].score))), Counter()]
             
             batch = self.scorer(df[qid])
             self.scored_count += len(batch)

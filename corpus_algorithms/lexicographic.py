@@ -8,7 +8,7 @@ import csv
 logger = ir_datasets.log.easy()
 
 
-class GAR(pt.Transformer):
+class CORPUS_ALGORITHM(pt.Transformer):
     """
     A transformer that implements the Graph-based Adaptive Re-ranker algorithm from
     MacAvaney et al. "Adaptive Re-Ranking with a Corpus Graph" CIKM 2022.
