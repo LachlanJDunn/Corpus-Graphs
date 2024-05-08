@@ -8,7 +8,7 @@ import csv
 logger = ir_datasets.log.easy()
 
 
-class CORPUS_ALGORITHM(pt.Transformer):
+class LADR_PROACTIVE(pt.Transformer):
     def __init__(self,
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
