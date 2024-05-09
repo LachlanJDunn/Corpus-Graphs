@@ -60,7 +60,7 @@ class CORPUS_ALGORITHM(pt.Transformer):
 
             query = df[qid]['query'].iloc[0]
             scores = {}
-            self.score_algorithm(df[qid], scores)
+            self.score_algorithm(df[qid], scores, qid, query)
 
             # Add scored items to results
             result['qid'].append(np.full(len(scores), qid))
@@ -92,11 +92,8 @@ class CORPUS_ALGORITHM(pt.Transformer):
             'score': result['score']
         })
 
-    def score_algorithm(self, batch, scores):
+    def score_algorithm(self, batch, scores, qid, query):
         # default algorithm (score initial documents)
         scored = self.scorer(batch)
         self.scored_count += len(scored)
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})
-
-    def search_algorithm(self):
-        pass

@@ -22,7 +22,7 @@ class GAR(pt.Transformer):
     def __init__(self,
         scorer: pt.Transformer,
         corpus_graph: 'CorpusGraph',
-        num_results: int = 1000,
+        budget: int = 1000,
         batch_size: Optional[int] = None,
         backfill: bool = True,
         enabled: bool = True,
@@ -42,7 +42,7 @@ class GAR(pt.Transformer):
         self.collect_data = collect_data
         self.scorer = scorer
         self.corpus_graph = corpus_graph
-        self.num_results = num_results
+        self.num_results = budget
         if batch_size is None:
             batch_size = scorer.batch_size if hasattr(scorer, 'batch_size') else 16
         self.batch_size = batch_size
