@@ -1,4 +1,4 @@
-import CORPUS_ALGORITHM
+from .corpus_algorithm import CORPUS_ALGORITHM
 from typing import Optional
 import numpy as np
 from collections import Counter
@@ -10,8 +10,15 @@ logger = ir_datasets.log.easy()
 
 
 class LADR_PROACTIVE(CORPUS_ALGORITHM):
-    def __init__(self):
-        super.__init__()
+    def __init__(self,
+                 scorer: pt.Transformer,
+                 corpus_graph: 'CorpusGraph',
+                 budget: int = 1000,
+                 batch_size: Optional[int] = None,
+                 verbose: bool = False,
+                 collect_data: bool = False):
+        super.__init__(scorer, corpus_graph, budget=budget,
+                       batch_size=batch_size, verbose=verbose, collect_data=collect_data)
 
     def score_algorithm(self, batch, scores, qid, query):
         # Score initial documents and all neighbours of initial documents
