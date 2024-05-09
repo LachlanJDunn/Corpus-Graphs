@@ -1,3 +1,4 @@
+from corpus_graphs.corpus_algorithms.corpus_algorithm import CORPUS_ALGORITHM
 from typing import Optional
 import numpy as np
 from collections import Counter
@@ -6,7 +7,6 @@ import pandas as pd
 import ir_datasets
 import csv
 logger = ir_datasets.log.easy()
-from corpus_algorithm import CORPUS_ALGORITHM
 
 
 class LADR_PROACTIVE(CORPUS_ALGORITHM):

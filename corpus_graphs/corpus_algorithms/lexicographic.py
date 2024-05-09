@@ -1,4 +1,4 @@
-from corpus_algorithm import CORPUS_ALGORITHM
+from corpus_graphs.corpus_algorithms.corpus_algorithm import CORPUS_ALGORITHM
 from typing import Optional
 import numpy as np
 from collections import Counter
