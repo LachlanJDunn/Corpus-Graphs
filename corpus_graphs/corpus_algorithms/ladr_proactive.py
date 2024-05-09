@@ -17,7 +17,7 @@ class LADR_PROACTIVE(CORPUS_ALGORITHM):
                  batch_size: Optional[int] = None,
                  verbose: bool = False,
                  collect_data: bool = False):
-        super.__init__(scorer, corpus_graph, budget=budget,
+        super().__init__(scorer, corpus_graph, budget=budget,
                        batch_size=batch_size, verbose=verbose, collect_data=collect_data)
 
     def score_algorithm(self, batch, scores, qid, query):

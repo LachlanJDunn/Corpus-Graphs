@@ -17,7 +17,7 @@ class LEXICOGRAPHIC(CORPUS_ALGORITHM):
                  batch_size: Optional[int] = None,
                  verbose: bool = False,
                  collect_data: bool = False):
-        super.__init__(scorer, corpus_graph, budget=budget, batch_size=batch_size, verbose=verbose, collect_data=collect_data)
+        super().__init__(scorer, corpus_graph, budget=budget, batch_size=batch_size, verbose=verbose, collect_data=collect_data)
 
     def score_algorithm(self, batch, scores, qid, query):
         # Score initial documents
@@ -28,8 +28,12 @@ class LEXICOGRAPHIC(CORPUS_ALGORITHM):
         remaining = self.budget
         batch = batch.sort_values(by=['rank'])
         for did in batch.docno:
+            if remaining <= 0:
+                break
             for target_did in self.corpus_graph.neighbours(did):
-                if remaining > 0 and target_did not in to_score:
+                if remaining <= 0:
+                    break
+                if target_did not in to_score:
                     to_score[target_did] = 0
                     remaining -= 1
                     
