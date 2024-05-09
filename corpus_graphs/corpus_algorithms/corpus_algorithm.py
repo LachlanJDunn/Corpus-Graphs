@@ -21,7 +21,7 @@ class CORPUS_ALGORITHM(pt.Transformer):
             Args:
                 scorer(pyterrier.Transformer): A transformer that scores query-document pairs. It will only be provided with ['qid, 'query', 'docno', 'score'].
                 corpus_graph(pyterrier_adaptive.CorpusGraph): A graph of the corpus, enabling quick lookups of nearest neighbours
-                budget(int): The maximum number of documents to score
+                budget(int): The maximum number of extra documents to score (always scoring initial documents)
                 batch_size(int): The number of documents to score at once. If not provided, will attempt to use the batch size from the scorer
                 verbose(bool): If True, print progress information
                 collect_data(bool): If True, save initial locations of top num_results documents

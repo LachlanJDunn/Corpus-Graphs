@@ -18,14 +18,15 @@ class LEXICOGRAPHIC(CORPUS_ALGORITHM):
         # Then score neighbours lexicographically based on ordering: (neigh's position in initial list, position in edgelist)
         to_score = {}
         to_score.update({k: 0 for k in batch.docno})
+
+        remaining = self.budget
+        batch = batch.sort_values(by=['rank'])
         for did in batch.docno:
-            count = 1
             for target_did in self.corpus_graph.neighbours(did):
-                to_score[target_did] = 0
-                if self.collect_data and target_did not in self.doc_location:
-                    self.doc_location[target_did] = (
-                        self.doc_location[did][0], count)
-                count += 1
+                if remaining > 0 and target_did not in to_score:
+                    to_score[target_did] = 0
+                    remaining -= 1
+                    
         to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
         to_score['qid'] = [qid for i in range(len(batch.index))]
         to_score['query'] = [query for i in range(len(batch.index))]
