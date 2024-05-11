@@ -19,6 +19,7 @@ class LADR_PROACTIVE(CORPUS_ALGORITHM):
                  collect_data: bool = False):
         super().__init__(scorer, corpus_graph, budget=budget,
                        batch_size=batch_size, verbose=verbose, collect_data=collect_data)
+        self.algorithm_type = 'ladr_proactive'
 
     def score_algorithm(self, batch, scores, qid, query):
         # Score initial documents and all neighbours of initial documents

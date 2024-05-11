@@ -9,7 +9,7 @@ import csv
 logger = ir_datasets.log.easy()
 
 
-class LEXICOGRAPHIC(CORPUS_ALGORITHM):
+class DECAY(CORPUS_ALGORITHM):
     def __init__(self,
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
@@ -17,10 +17,11 @@ class LEXICOGRAPHIC(CORPUS_ALGORITHM):
                  batch_size: Optional[int] = None,
                  verbose: bool = False,
                  collect_data: bool = False):
-        super().__init__(scorer, corpus_graph, budget=budget, batch_size=batch_size, verbose=verbose, collect_data=collect_data)
-        self.algorithm_type = 'lexicographic'
+        super().__init__(scorer, corpus_graph, budget=budget,
+                         batch_size=batch_size, verbose=verbose, collect_data=collect_data)
+        self.algorithm_type = 'decay'
 
-    def score_algorithm(self, batch, scores, qid, query):
+    def score_algorithm(self, batch, scores, qid, query, doc_location):
         # Score initial documents
         # Then score neighbours lexicographically based on ordering: (neigh's position in initial list, position in edgelist)
         to_score = {}
@@ -37,7 +38,7 @@ class LEXICOGRAPHIC(CORPUS_ALGORITHM):
                 if target_did not in to_score:
                     to_score[target_did] = 0
                     remaining -= 1
-                    
+
         to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
         to_score['qid'] = [qid for i in range(len(to_score))]
         to_score['query'] = [query for i in range(len(to_score))]

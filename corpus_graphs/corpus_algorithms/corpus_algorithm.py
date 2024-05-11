@@ -15,7 +15,8 @@ class CORPUS_ALGORITHM(pt.Transformer):
                  budget: int = 1000,
                  batch_size: Optional[int] = None,
                  verbose: bool = False,
-                 collect_data: bool = False):
+                 collect_data: bool = False,
+                 metadata: bool = False):
         """
             Corpus Algorithm init method
             Args:
@@ -31,11 +32,14 @@ class CORPUS_ALGORITHM(pt.Transformer):
         self.scorer = scorer
         self.corpus_graph = corpus_graph
         self.budget = budget
+        self.metadata = metadata
         if batch_size is None:
             batch_size = scorer.batch_size if hasattr(
                 scorer, 'batch_size') else 16
         self.batch_size = batch_size
         self.verbose = verbose
+        self.algorithm_type = 'corpus_algorithm'
+        self.doc_location = {}
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         result = {'qid': [], 'query': [], 'docno': [],
@@ -52,10 +56,10 @@ class CORPUS_ALGORITHM(pt.Transformer):
         for qid in qids:
             # format: (row, column)
             if self.collect_data:
-                doc_location = {}
+                self.doc_location = {}
                 count = 0
                 for index, doc in df[qid].iterrows():
-                    doc_location[doc.docno] = (count, 0)
+                    self.doc_location[doc.docno] = (count, 0)
                     count += 1
 
             query = df[qid]['query'].iloc[0]
@@ -71,7 +75,7 @@ class CORPUS_ALGORITHM(pt.Transformer):
                 result['score'].append(score)
 
             if self.collect_data:
-                doc_location_by_qid[qid[0]] = doc_location
+                doc_location_by_qid[qid[0]] = self.doc_location
         if self.collect_data:
             qids = np.concatenate(result['qid'])
             docnos = result['docno']
@@ -83,6 +87,9 @@ class CORPUS_ALGORITHM(pt.Transformer):
                                         'in_location', 'out_location'])
                 writer.writeheader()
                 writer.writerows(locations)
+        if self.metadata == True:
+            with open(f'{self.algorithm_type}_metadata.txt', 'a') as file:
+                file.write(f'{self.budget} {self.scored_count}\n')
         print('Total Documents Scored: ' + str(self.scored_count))
         return pd.DataFrame({
             'qid': np.concatenate(result['qid']),
