@@ -75,7 +75,7 @@ class CORPUS_ALGORITHM(pt.Transformer):
                 result['score'].append(score)
 
             if self.collect_data:
-                doc_location_by_qid[qid[0]] = self.doc_location
+                doc_location_by_qid[qid[0]] = self.doc_location.copy()
         if self.collect_data:
             qids = np.concatenate(result['qid'])
             docnos = result['docno']
