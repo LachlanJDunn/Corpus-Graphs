@@ -24,10 +24,11 @@ class GAR(pt.Transformer):
         corpus_graph: 'CorpusGraph',
         budget: int = 1000,
         batch_size: Optional[int] = None,
-        backfill: bool = True,
+        backfill: bool = False,
         enabled: bool = True,
         verbose: bool = False,
-        collect_data: bool = False):
+        collect_data: bool = False,
+        metadata: bool = False):
         """
             GAR init method
             Args:
@@ -49,6 +50,10 @@ class GAR(pt.Transformer):
         self.backfill = backfill
         self.enabled = enabled
         self.verbose = verbose
+        self.metadata = metadata
+        self.scored_count = 0
+        self.algorithm_type = 'gar'
+        self.initial_size = None
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -70,6 +75,8 @@ class GAR(pt.Transformer):
             qids = logger.pbar(qids, desc='adaptive re-ranking', unit='query')
         
         for qid in qids:
+            if self.initial_size == None:
+                self.initial_size = len(df[qid])
             if self.collect_data:
                 # format: (row, column)
                 doc_location = {}
@@ -100,6 +107,7 @@ class GAR(pt.Transformer):
 
                 # go score the batch of document with the re-ranker
                 batch = self.scorer(batch)
+                self.scored_count += len(batch)
                 scores.update({k: (s, iteration) for k, s in zip(batch.docno, batch.score)}) #update information in form: docno: (score, iteration)
                 self._drop_docnos_from_counters(batch.docno, res_map)
                 if len(scores) < self.num_results and self.enabled: #if more documents to rescore
@@ -140,6 +148,10 @@ class GAR(pt.Transformer):
                 writer = csv.DictWriter(csvfile, fieldnames=['in_location', 'out_location'])
                 writer.writeheader()
                 writer.writerows(locations)
+        if self.metadata == True:
+            with open(f'{self.algorithm_type}_metadata.txt', 'a') as file:
+                file.write(f'{self.num_results - self.initial_size} {self.scored_count}\n')
+        print('Total Documents Scored: ' + str(self.scored_count))
         return pd.DataFrame({
             'qid': np.concatenate(result['qid']),
             'query': np.concatenate(result['query']),

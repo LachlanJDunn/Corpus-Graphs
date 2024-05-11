@@ -34,8 +34,8 @@ class LADR_PROACTIVE(CORPUS_ALGORITHM):
                         self.doc_location[did][0], count)
                 count += 1
         to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
-        to_score['qid'] = [qid for i in range(len(batch.index))]
-        to_score['query'] = [query for i in range(len(batch.index))]
+        to_score['qid'] = [qid for i in range(len(to_score))]
+        to_score['query'] = [query for i in range(len(to_score))]
         
         scored = self.scorer(to_score)
         self.scored_count += len(scored)
