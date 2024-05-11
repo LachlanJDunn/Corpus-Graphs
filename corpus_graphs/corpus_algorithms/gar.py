@@ -54,6 +54,7 @@ class GAR(pt.Transformer):
         self.scored_count = 0
         self.algorithm_type = 'gar'
         self.initial_size = None
+        self.doc_location = {}
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -79,10 +80,10 @@ class GAR(pt.Transformer):
                 self.initial_size = len(df[qid])
             if self.collect_data:
                 # format: (row, column)
-                doc_location = {}
+                self.doc_location = {}
                 count = 0
                 for index, doc in df[qid].iterrows():
-                    doc_location[doc.docno] = (count, 0)
+                    self.doc_location[doc.docno] = (count, 0)
                     count += 1
             query = df[qid]['query'].iloc[0]
             scores = {}
@@ -111,7 +112,7 @@ class GAR(pt.Transformer):
                 scores.update({k: (s, iteration) for k, s in zip(batch.docno, batch.score)}) #update information in form: docno: (score, iteration)
                 self._drop_docnos_from_counters(batch.docno, res_map)
                 if len(scores) < self.num_results and self.enabled: #if more documents to rescore
-                    self._update_frontier(batch, res_map[1], frontier_data, scores, doc_location)
+                    self._update_frontier(batch, res_map[1], frontier_data, scores)
                 iteration += 1
 
             # Add scored items to results
@@ -137,7 +138,7 @@ class GAR(pt.Transformer):
                     result['score'].append(last_score - 1 - i)
                     result['iteration'].append(-1)
             if self.collect_data:
-                doc_location_by_qid[qid[0]] = doc_location
+                doc_location_by_qid[qid[0]] = self.doc_location
         if self.collect_data:
             qids = np.concatenate(result['qid'])
             docnos = result['docno']
@@ -161,7 +162,7 @@ class GAR(pt.Transformer):
             'iteration': result['iteration'],
         })
 
-    def _update_frontier(self, scored_batch, frontier, frontier_data, scored_dids, doc_location):
+    def _update_frontier(self, scored_batch, frontier, frontier_data, scored_dids):
         remaining_budget = self.num_results - len(scored_dids) #total number of documents remaining to score
         for score, did in sorted(zip(scored_batch.score, scored_batch.docno), reverse=True): #loop through highest to lowest scores
             if len(frontier) < remaining_budget or score >= frontier_data['minscore']: #if more space or score higher than previous lowest added score
@@ -173,8 +174,8 @@ class GAR(pt.Transformer):
                         if target_did not in frontier or score > frontier[target_did]:
                             frontier[target_did] = score
                             hit = True
-                            if self.collect_data and target_did not in doc_location:
-                                doc_location[target_did] = (doc_location[did][0], count)
+                            if self.collect_data and target_did not in self.doc_location:
+                                self.doc_location[target_did] = (self.doc_location[did][0], count)
                     count += 1
                 if hit and score < frontier_data['minscore']:
                     frontier_data['minscore'] = score
