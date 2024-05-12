@@ -180,7 +180,7 @@ class GAR(pt.Transformer):
                                         (self.doc_location[did][0][0], count))
                                 else:
                                     self.doc_location[target_did] = [
-                                        (self.doc_location[did][0], count)]
+                                        (self.doc_location[did][0][0], count)]
                     count += 1
                 if hit and score < frontier_data['minscore']:
                     frontier_data['minscore'] = score

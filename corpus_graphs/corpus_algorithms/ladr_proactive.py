@@ -33,7 +33,7 @@ class LADR_PROACTIVE(CORPUS_ALGORITHM):
                     if target_did in self.doc_location:
                         self.doc_location[target_did].append((self.doc_location[did][0][0], count))
                     else:
-                        self.doc_location[target_did] = [(self.doc_location[did][0], count)]
+                        self.doc_location[target_did] = [(self.doc_location[did][0][0], count)]
                 count += 1
         to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
         to_score['qid'] = [qid for i in range(len(to_score))]
