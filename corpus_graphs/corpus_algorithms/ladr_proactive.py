@@ -31,7 +31,7 @@ class LADR_PROACTIVE(CORPUS_ALGORITHM):
                 to_score[target_did] = 0
                 if self.collect_data:
                     if target_did in self.doc_location:
-                        self.doc_location[target_did].append((self.doc_location[did][0], count))
+                        self.doc_location[target_did].append((self.doc_location[did][0][0], count))
                     else:
                         self.doc_location[target_did] = [(self.doc_location[did][0], count)]
                 count += 1
