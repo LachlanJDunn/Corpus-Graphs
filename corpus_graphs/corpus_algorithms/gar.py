@@ -145,7 +145,7 @@ class GAR(pt.Transformer):
             for index, qid in enumerate(qids):
                 locations.append(
                     {'in_location': doc_location_by_qid[qid][docnos[index]], 'out_location': np.concatenate(result['rank'])[index]})
-            with open('location_data.csv', 'w') as csvfile:
+            with open(f'{self.algorithm_type}_location_data.csv', 'w') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=['in_location', 'out_location'])
                 writer.writeheader()
                 writer.writerows(locations)
@@ -174,8 +174,13 @@ class GAR(pt.Transformer):
                         if target_did not in frontier or score > frontier[target_did]:
                             frontier[target_did] = score
                             hit = True
-                            if self.collect_data and target_did not in self.doc_location:
-                                self.doc_location[target_did] = (self.doc_location[did][0], count)
+                            if self.collect_data:
+                                if target_did in self.doc_location:
+                                    self.doc_location[target_did].append(
+                                        (self.doc_location[did][0], count))
+                                else:
+                                    self.doc_location[target_did] = [
+                                        (self.doc_location[did][0], count)]
                     count += 1
                 if hit and score < frontier_data['minscore']:
                     frontier_data['minscore'] = score

@@ -59,7 +59,7 @@ class CORPUS_ALGORITHM(pt.Transformer):
                 self.doc_location = {}
                 count = 0
                 for index, doc in df[qid].iterrows():
-                    self.doc_location[doc.docno] = (count, 0)
+                    self.doc_location[doc.docno] = [(count, 0)]
                     count += 1
 
             query = df[qid]['query'].iloc[0]
@@ -70,7 +70,7 @@ class CORPUS_ALGORITHM(pt.Transformer):
             result['qid'].append(np.full(len(scores), qid))
             result['query'].append(np.full(len(scores), query))
             result['rank'].append(np.arange(len(scores)))
-            for did, score in scores.items():
+            for did, score in Counter(scores).most_common():
                 result['docno'].append(did)
                 result['score'].append(score)
 
@@ -82,7 +82,7 @@ class CORPUS_ALGORITHM(pt.Transformer):
             for index, qid in enumerate(qids):
                 locations.append(
                     {'in_location': doc_location_by_qid[qid][docnos[index]], 'out_location': np.concatenate(result['rank'])[index]})
-            with open('location_data.csv', 'w') as csvfile:
+            with open(f'{self.algorithm_type}_location_data.csv', 'w') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=[
                                         'in_location', 'out_location'])
                 writer.writeheader()
