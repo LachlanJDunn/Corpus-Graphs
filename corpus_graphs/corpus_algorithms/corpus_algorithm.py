@@ -43,7 +43,7 @@ class CORPUS_ALGORITHM(pt.Transformer):
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         result = {'qid': [], 'query': [], 'docno': [],
-                  'rank': [], 'score': [], 'iteration': []}
+                  'rank': [], 'score': []}
 
         locations = []
         doc_location_by_qid = {}
