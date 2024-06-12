@@ -65,6 +65,7 @@ class SPACE():
             'rank': np.concatenate(result['rank']),
             'score': result['score']
         })
+        final.to_csv(f'{self.space_location}/{self.space_name}/results.csv')
 
         qids = np.concatenate(result['qid'])
         docnos = result['docno']
@@ -79,10 +80,6 @@ class SPACE():
                                     'in_location', 'out_location'])
             writer.writeheader()
             writer.writerows(locations)
-        with open(f'{self.space_location}/{self.space_name}/results.csv', 'w') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=['qid', 'query', 'docno', 'rank', 'score'])
-            writer.writeheader()
-            writer.writerows(final)
         with open(f'{self.space_location}/{self.space_name}/metadata.txt', 'w') as file:
             file.write(f'{self.budget} {self.scored_count}\n')
         print('Total Documents Scored: ' + str(self.scored_count))
