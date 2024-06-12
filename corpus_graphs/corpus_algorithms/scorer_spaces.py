@@ -21,7 +21,7 @@ class SPACE():
         self.space_name = space_name
         self.space_location = space_location
 
-    def create_space(self, df: pd.DataFrame) -> pd.DataFrame:
+    def create_space(self, df: pd.DataFrame, initial_size) -> pd.DataFrame:
         result = {'qid': [], 'query': [], 'docno': [],
                   'rank': [], 'score': []}
 
@@ -33,16 +33,18 @@ class SPACE():
         qids = logger.pbar(qids, desc='adaptive re-ranking', unit='query')
 
         for qid in qids:
+            query_df = df[qid].head(initial_size)
+
             # format: (row, column)
             self.doc_location = {}
             count = 0
-            for index, doc in df[qid].iterrows():
+            for index, doc in query_df.iterrows():
                 self.doc_location[doc.docno] = [(count, 0)]
                 count += 1
 
-            query = df[qid]['query'].iloc[0]
+            query = query_df['query'].iloc[0]
             scores = {}
-            self.score_algorithm(df[qid], scores, qid, query)
+            self.score_algorithm(query_df, scores, qid, query)
 
             # Add scored items to results
             result['qid'].append(np.full(min(len(scores), 1000), qid))
