@@ -6,6 +6,7 @@ import pandas as pd
 import ir_datasets
 import csv
 logger = ir_datasets.log.easy()
+import os
 
 
 class GAR(pt.Transformer):
@@ -150,8 +151,11 @@ class GAR(pt.Transformer):
                 writer.writeheader()
                 writer.writerows(locations)
         if self.metadata != '':
-            with open(self.metadata, 'a') as file:
-                file.write(f'{self.num_results - self.initial_size} {self.scored_count}\n')
+            if not os.path.exists(self.metadata):
+                os.makedirs(self.metadata)
+            with open(f'{self.metadata}/{self.algorithm_type}_metadata.txt', 'a') as file:
+                file.write(
+                    f'{self.num_results - self.initial_size} {self.scored_count}\n')
         print('Total Documents Scored: ' + str(self.scored_count))
         return pd.DataFrame({
             'qid': np.concatenate(result['qid']),
