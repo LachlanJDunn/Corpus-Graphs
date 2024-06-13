@@ -9,20 +9,22 @@ import os
 import csv
 logger = ir_datasets.log.easy()
 
-class SPACE():
+class VIEW():
     def __init__(self,
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
+                 view_location: str,
                  space_name: str,
-                 space_location: str):
+                 view_name: str):
         self.scored_count = 0
         self.scorer = scorer
         self.corpus_graph = corpus_graph
         self.doc_location = {}
+        self.view_name = view_name
+        self.view_location = view_location
         self.space_name = space_name
-        self.space_location = space_location
 
-    def create_space(self, df: pd.DataFrame, initial_size) -> pd.DataFrame:
+    def create_view(self, df: pd.DataFrame, initial_size) -> pd.DataFrame:
         result = {'qid': [], 'query': [], 'docno': [],
                   'rank': [], 'score': []}
 
@@ -65,23 +67,21 @@ class SPACE():
             'rank': np.concatenate(result['rank']),
             'score': result['score']
         })
-        final.to_csv(f'{self.space_location}/{self.space_name}/results.csv')
+        final.to_csv(f'{self.view_location}/{self.space_name}/{self.view_name}/results.csv')
 
         qids = np.concatenate(result['qid'])
         docnos = result['docno']
         for index, qid in enumerate(qids):
             locations.append(
                 {'in_location': doc_location_by_qid[qid][docnos[index]], 'out_location': np.concatenate(result['rank'])[index]})
-        newpath = f'{self.space_location}/{self.space_name}'
+        newpath = f'{self.view_location}/{self.space_name}/{self.view_name}'
         if not os.path.exists(newpath):
             os.makedirs(newpath)
-        with open(f'{self.space_location}/{self.space_name}/data.csv', 'w') as csvfile:
+        with open(f'{self.view_location}/{self.space_name}/{self.view_name}/data.csv', 'w') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=[
                                     'in_location', 'out_location'])
             writer.writeheader()
             writer.writerows(locations)
-        with open(f'{self.space_location}/{self.space_name}/metadata.txt', 'w') as file:
-            file.write(f'{self.budget} {self.scored_count}\n')
         print('Total Documents Scored: ' + str(self.scored_count))
 
     def score_algorithm(self, batch, scores, qid, query):
@@ -91,14 +91,15 @@ class SPACE():
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})
 
 
-# Space: initial documents and all of their neighbours
-class SPACE1(SPACE):
+# View: initial documents and all of their neighbours
+class VIEW1(VIEW):
     def __init__(self,
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
+                 view_location: str,
                  space_name: str,
-                 space_location: str):
-        super().__init__(scorer, corpus_graph, space_name, space_location)
+                 view_name: str):
+        super().__init__(scorer, corpus_graph, view_location, space_name, view_name)
 
     def score_algorithm(self, batch, scores, qid, query):
         # Score initial documents and all neighbours of initial documents

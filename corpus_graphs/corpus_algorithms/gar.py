@@ -28,7 +28,7 @@ class GAR(pt.Transformer):
         enabled: bool = True,
         verbose: bool = False,
         collect_data: bool = False,
-        metadata: bool = False):
+        metadata: str = ''):
         """
             GAR init method
             Args:
@@ -149,8 +149,8 @@ class GAR(pt.Transformer):
                 writer = csv.DictWriter(csvfile, fieldnames=['in_location', 'out_location'])
                 writer.writeheader()
                 writer.writerows(locations)
-        if self.metadata == True:
-            with open(f'{self.algorithm_type}_metadata.txt', 'a') as file:
+        if self.metadata != '':
+            with open(self.metadata, 'a') as file:
                 file.write(f'{self.num_results - self.initial_size} {self.scored_count}\n')
         print('Total Documents Scored: ' + str(self.scored_count))
         return pd.DataFrame({
