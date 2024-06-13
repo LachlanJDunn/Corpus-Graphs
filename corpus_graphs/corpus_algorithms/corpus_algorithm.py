@@ -5,6 +5,7 @@ import pyterrier as pt
 import pandas as pd
 import ir_datasets
 import csv
+import os
 logger = ir_datasets.log.easy()
 
 
@@ -61,7 +62,9 @@ class CORPUS_ALGORITHM(pt.Transformer):
                 result['docno'].append(did)
                 result['score'].append(score)
         if self.metadata != '':
-            with open(self.metadata, 'a') as file:
+            if not os.path.exists(self.metadata):
+                os.makedirs(self.metadata)
+            with open(f'{self.metadata}/{self.algorithm_type}_metadata.txt', 'a') as file:
                 file.write(f'{self.budget} {self.scored_count}\n')
         print('Total Documents Scored: ' + str(self.scored_count))
         return pd.DataFrame({
