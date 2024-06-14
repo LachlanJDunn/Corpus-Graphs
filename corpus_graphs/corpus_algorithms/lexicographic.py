@@ -13,7 +13,7 @@ class LEXICOGRAPHIC(CORPUS_ALGORITHM):
     def __init__(self,
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
-                 budget: int = 0,
+                 budget: int = 100,
                  batch_size: Optional[int] = None,
                  verbose: bool = False,
                  metadata: str = ''):
@@ -24,15 +24,15 @@ class LEXICOGRAPHIC(CORPUS_ALGORITHM):
         # Score initial documents
         # Then score neighbours lexicographically based on ordering: (neigh's position in initial list, position in edgelist)
         to_score = {}
-        to_score.update({k: 0 for k in batch.docno})
+        to_score.update({batch.docno[k]: 0 for k in range(min(len(batch.docno), self.budget))})
 
-        remaining = self.budget
+        remaining = self.budget - len(to_score.keys())
         batch = batch.sort_values(by=['rank'])
         for did in batch.docno:
-            if remaining == 0:
+            if remaining <= 0:
                 break
             for target_did in self.corpus_graph.neighbours(did):
-                if remaining == 0:
+                if remaining <= 0:
                     break
                 if target_did not in to_score:
                     to_score[target_did] = 0
