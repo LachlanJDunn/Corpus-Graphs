@@ -29,8 +29,7 @@ class DECAY(CORPUS_ALGORITHM):
         to_score.update(
             {k: 0 for k in batch.docno[:min(self.budget, len(batch.docno))]})
         remaining = self.budget - len(to_score.keys())
-        if remaining <= 0:
-            return
+        
         k = len(self.corpus_graph.neighbours(batch.docno.iloc[0]))
         c = len(batch.docno)
 
