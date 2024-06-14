@@ -23,32 +23,31 @@ class DECAY(CORPUS_ALGORITHM):
         self.algorithm_type = 'decay'
 
     def score_algorithm(self, batch, scores, qid, query):
-        # Score lexicographically while applying a decay to edge list size (reduces as algorithm traverses initial retrieved list)
+        # Score initial documents
+        # Then score lexicographically while applying a decay to edge list size (reduces as algorithm traverses initial retrieved list)
         to_score = {}
-        if len(batch.docno == 0):
+        to_score.update(
+            {k: 0 for k in batch.docno[:min(self.budget, len(batch.docno))]})
+        remaining = self.budget - len(to_score.keys())
+        if remaining <= 0:
             return
-        k = len(self.corpus_graph.neighbours(batch.docno[0]))
+        k = len(self.corpus_graph.neighbours(batch.docno.iloc[0]))
         c = len(batch.docno)
 
         batch = batch.sort_values(by=['rank'])
-        remaining = self.budget
-        decay_factor = min(self.budget / (k * c), 1)
-        count_list = []
         for index, did in enumerate(batch.docno):
             if remaining <= 0:
                 break
-            to_score[did] = 0
-            remaining -= 1
-            num = math.ceil(k * (decay_factor ^ index))
+            # Max number to score for the row: [1, k]
+            num = self.linear_decay(index, self.budget - c, k, c)
+            count = 0
             for target_did in self.corpus_graph.neighbours(did):
-                count = 1
                 if remaining <= 0:
                     break
-                if count < num and target_did not in to_score:
+                if count <= num and target_did not in to_score:
                     to_score[target_did] = 0
                     remaining -= 1
                     count += 1
-                count_list.append(count)
 
         to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
         to_score['qid'] = [qid for i in range(len(to_score))]
@@ -57,5 +56,11 @@ class DECAY(CORPUS_ALGORITHM):
         scored = self.scorer(to_score)
         self.scored_count += len(scored)
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})
-        print(count_list)
+    
+    def linear_decay(i, budget, k, c):
+        if budget >= (k * c):
+            m = 0
+        else:
+            m = -0.5 * ((k * c) / budget)
+        return max(math.ceil(k * (m * (i / c) + 1)), 1)
 
