@@ -39,7 +39,7 @@ class DECAY(CORPUS_ALGORITHM):
             if remaining <= 0:
                 break
             # Max number to score for the row: [1, k]
-            num = self.linear_decay(index, self.budget - c, k, c)
+            num = self.decay(index, self.budget - c, k, c)
             count = 0
             for target_did in self.corpus_graph.neighbours(did):
                 if remaining <= 0:
@@ -57,7 +57,23 @@ class DECAY(CORPUS_ALGORITHM):
         self.scored_count += len(scored)
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})
     
-    def linear_decay(i, budget, k, c):
+    def decay(i, budget, k, c):
+        return k
+
+
+class LINEAR_DECAY(CORPUS_ALGORITHM):
+    def __init__(self,
+                 scorer: pt.Transformer,
+                 corpus_graph: 'CorpusGraph',
+                 budget: int = 100,
+                 batch_size: Optional[int] = None,
+                 verbose: bool = False,
+                 metadata: str = ''):
+        super().__init__(scorer, corpus_graph, budget=budget,
+                         batch_size=batch_size, verbose=verbose, metadata=metadata)
+        self.algorithm_type = 'linear_decay'
+        
+    def decay(i, budget, k, c):
         if budget >= (k * c):
             m = 0
         else:
