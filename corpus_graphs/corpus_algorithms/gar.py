@@ -157,6 +157,7 @@ class GAR(pt.Transformer):
                 file.write(
                     f'{self.num_results - self.initial_size} {self.scored_count}\n')
         print('Total Documents Scored: ' + str(self.scored_count))
+        print('Total Documents Returned: ' + str(len(result['docno'])))
         return pd.DataFrame({
             'qid': np.concatenate(result['qid']),
             'query': np.concatenate(result['query']),
