@@ -34,7 +34,7 @@ class LADR_PROACTIVE(CORPUS_ALGORITHM):
         to_score['qid'] = [qid for i in range(len(to_score))]
         to_score['query'] = [query for i in range(len(to_score))]
         
-        self.scored_count += len(to_score.keys())
+        self.scored_count += len(to_score)
         scored = self.scorer(to_score)
 
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})
