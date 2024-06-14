@@ -86,8 +86,9 @@ class VIEW():
 
     def score_algorithm(self, batch, scores, qid, query):
         # default algorithm (score initial documents)
+        self.scored_count += len(batch)
         scored = self.scorer(batch)
-        self.scored_count += len(scored)
+
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})
 
 
@@ -120,6 +121,7 @@ class VIEW1(VIEW):
         to_score['qid'] = [qid for i in range(len(to_score))]
         to_score['query'] = [query for i in range(len(to_score))]
 
+        self.scored_count += len(to_score.keys())
         scored = self.scorer(to_score)
-        self.scored_count += len(scored)
+        
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})

@@ -77,6 +77,7 @@ class CORPUS_ALGORITHM(pt.Transformer):
 
     def score_algorithm(self, batch, scores, qid, query):
         # default algorithm (score initial documents)
+        self.scored_count += len(batch)
         scored = self.scorer(batch)
-        self.scored_count += len(scored)
+
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})

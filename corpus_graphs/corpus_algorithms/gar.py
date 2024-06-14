@@ -108,8 +108,8 @@ class GAR(pt.Transformer):
                 batch['query'] = [query for i in range(len(batch.index))]
 
                 # go score the batch of document with the re-ranker
-                batch = self.scorer(batch)
                 self.scored_count += len(batch)
+                batch = self.scorer(batch)
                 scores.update({k: (s, iteration) for k, s in zip(batch.docno, batch.score)}) #update information in form: docno: (score, iteration)
                 self._drop_docnos_from_counters(batch.docno, res_map)
                 if len(scores) < self.num_results and self.enabled: #if more documents to rescore

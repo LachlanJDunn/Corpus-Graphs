@@ -29,7 +29,7 @@ class DECAY(CORPUS_ALGORITHM):
         to_score.update(
             {k: 0 for k in batch.docno[:min(self.budget, len(batch.docno))]})
         remaining = self.budget - len(to_score.keys())
-        
+
         k = len(self.corpus_graph.neighbours(batch.docno.iloc[0]))
         c = len(batch.docno)
 
@@ -52,8 +52,9 @@ class DECAY(CORPUS_ALGORITHM):
         to_score['qid'] = [qid for i in range(len(to_score))]
         to_score['query'] = [query for i in range(len(to_score))]
 
+        self.scored_count += len(to_score.keys())
         scored = self.scorer(to_score)
-        self.scored_count += len(scored)
+        
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})
     
     def decay(self, i, budget, k, c):
