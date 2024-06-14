@@ -57,11 +57,11 @@ class DECAY(CORPUS_ALGORITHM):
         self.scored_count += len(scored)
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})
     
-    def decay(i, budget, k, c):
+    def decay(self, i, budget, k, c):
         return k
 
 
-class LINEAR_DECAY(CORPUS_ALGORITHM):
+class LINEAR_DECAY(DECAY):
     def __init__(self,
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
@@ -72,8 +72,8 @@ class LINEAR_DECAY(CORPUS_ALGORITHM):
         super().__init__(scorer, corpus_graph, budget=budget,
                          batch_size=batch_size, verbose=verbose, metadata=metadata)
         self.algorithm_type = 'linear_decay'
-        
-    def decay(i, budget, k, c):
+
+    def decay(self, i, budget, k, c):
         if budget >= (k * c):
             m = 0
         else:
