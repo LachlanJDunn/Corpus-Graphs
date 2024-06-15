@@ -14,12 +14,16 @@ class LADR_ADAPTIVE(CORPUS_ALGORITHM):
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
                  budget: int = 1000,
+                 k: int = 1,
+                 c: int = 1,
                  batch_size: Optional[int] = None,
                  verbose: bool = False,
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget,
                          batch_size=batch_size, verbose=verbose, metadata=metadata)
         self.algorithm_type = 'ladr_adaptive'
+        self.k = k
+        self.c = c
 
     def score_algorithm(self, batch, scores, qid, query):
         # Score initial documents
@@ -43,14 +47,19 @@ class LADR_ADAPTIVE(CORPUS_ALGORITHM):
 
         while remaining > 0:
             to_score = {}
-            did = max(score_queue, key=score_queue.get)
-            del score_queue[did]
-            for target_did in self.corpus_graph.neighbours(did):
+            for i in range(self.c):
                 if remaining <= 0:
                     break
-                if target_did not in scored_docs:
-                    to_score[target_did] = 0
-                    remaining -= 1
+                did = max(score_queue, key=score_queue.get)
+                del score_queue[did]
+                k_count = 0
+                for target_did in self.corpus_graph.neighbours(did):
+                    if remaining <= 0 or k_count >= self.k:
+                        break
+                    if target_did not in scored_docs and target_did not in to_score:
+                        to_score[target_did] = 0
+                        remaining -= 1
+                        k_count += 1
             if len(to_score.keys()) == 0:
                 break
             to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
