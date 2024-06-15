@@ -64,6 +64,8 @@ class LADR_ADAPTIVE_UNCAPPED(CORPUS_ALGORITHM):
                 score_queue.update(
                     dict(zip(batch_scored.docno, batch_scored.score)))
                 scored_docs.update(dict.fromkeys(batch_scored.docno, 0))
+            if len(score_queue) == 0:
+                break
 
         scored = pd.concat(scored_list)
         self.scored_count += len(scored)
