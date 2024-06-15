@@ -36,7 +36,7 @@ class LADR_ADAPTIVE(CORPUS_ALGORITHM):
         to_score['query'] = [query for i in range(len(to_score))]
         batch_scored = self.scorer(to_score)
         scored_list.append(batch_scored)
-        score_queue.update(dict.fromkeys(batch_scored.docno, batch_scored.score))
+        score_queue.update(dict(zip(batch_scored.docno, batch_scored.score)))
         scored_docs.update(dict.fromkeys(batch_scored.docno, 0))
 
         remaining = self.budget - len(to_score.keys())
@@ -58,8 +58,10 @@ class LADR_ADAPTIVE(CORPUS_ALGORITHM):
             to_score['query'] = [query for i in range(len(to_score))]
             batch_scored = self.scorer(to_score)
             scored_list.append(batch_scored)
-            score_queue.update(dict.fromkeys(batch_scored.docno, batch_scored.score))
+            score_queue.update(dict(zip(batch_scored.docno, batch_scored.score)))
             scored_docs.update(dict.fromkeys(batch_scored.docno, 0))
 
+        
         scored = pd.concat(scored_list)
+        self.scored_count += len(scored)
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})
