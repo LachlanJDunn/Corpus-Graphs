@@ -27,7 +27,7 @@ class LEXICOGRAPHIC(CORPUS_ALGORITHM):
         to_score.update({k: 0 for k in batch.docno[:min(self.budget, len(batch.docno))]})
 
         remaining = self.budget - len(to_score.keys())
-        batch = batch.sort_values(by=['rank'])
+        #batch = batch.sort_values(by=['rank'])
         for did in batch.docno:
             if remaining <= 0:
                 break

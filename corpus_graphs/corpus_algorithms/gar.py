@@ -155,7 +155,7 @@ class GAR(pt.Transformer):
                 os.makedirs(self.metadata)
             with open(f'{self.metadata}/{self.algorithm_type}_metadata.txt', 'a') as file:
                 file.write(
-                    f'{self.num_results - self.initial_size} {self.scored_count}\n')
+                    f'{self.num_results} {self.scored_count}\n')
         print('Total Documents Scored: ' + str(self.scored_count))
         print('Total Documents Returned: ' + str(len(result['docno'])))
         return pd.DataFrame({
