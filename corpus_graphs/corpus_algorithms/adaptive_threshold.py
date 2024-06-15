@@ -37,7 +37,7 @@ class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
         to_score = {}
         threshold = min(batch.score[:math.floor(self.budget * self.threshold_sample_ratio)])
 
-        to_score.update({k: 0 for k in batch.docno[:math.floor(self.budget / self.threshold_sample_ratio)]})
+        to_score.update({k: 0 for k in batch.docno[:math.floor(self.budget * self.threshold_sample_ratio)]})
         to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
         to_score['qid'] = [qid for i in range(len(to_score))]
         to_score['query'] = [query for i in range(len(to_score))]
@@ -48,7 +48,7 @@ class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
 
         batch_queue.update(dict(zip(batch.docno, batch.score)))
 
-        remaining = self.budget - int(math.floor(self.budget / self.threshold_sample_ratio))
+        remaining = self.budget - int(math.floor(self.budget * self.threshold_sample_ratio))
 
         while remaining > 0:
             to_score = {}
