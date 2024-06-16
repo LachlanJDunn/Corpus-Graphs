@@ -48,7 +48,7 @@ class LADR_ADAPTIVE(CORPUS_ALGORITHM):
         while remaining > 0:
             to_score = {}
             for i in range(self.c):
-                if remaining <= 0:
+                if remaining <= 0 or len(score_queue) == 0:
                     break
                 did = max(score_queue, key=score_queue.get)
                 del score_queue[did]

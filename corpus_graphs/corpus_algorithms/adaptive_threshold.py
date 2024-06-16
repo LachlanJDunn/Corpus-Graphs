@@ -48,7 +48,7 @@ class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
 
         batch_queue.update(dict(zip(batch.docno, batch.score)))
 
-        remaining = self.budget - int(math.floor(self.budget * self.threshold_sample_ratio))
+        remaining = self.budget - len(to_score.docno)
 
         while remaining > 0:
             to_score = {}
