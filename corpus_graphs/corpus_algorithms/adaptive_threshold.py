@@ -8,6 +8,7 @@ import ir_datasets
 import csv
 logger = ir_datasets.log.easy()
 import math
+import statistics
 
 
 class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
@@ -35,7 +36,7 @@ class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
         batch_queue = {}
         scored_docs = {}
         to_score = {}
-        threshold = min(batch.score[:math.floor(self.budget * self.threshold_sample_ratio)])
+        threshold = self.calculate_threshold(batch)
 
         to_score.update({k: 0 for k in batch.docno[:math.floor(self.budget * self.threshold_sample_ratio)]})
         to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
@@ -89,3 +90,40 @@ class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
         scored = pd.concat(scored_list)
         self.scored_count += len(scored)
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})
+    def calculate_threshold(self, batch):
+        return 0
+
+class ADAPTIVE_THRESHOLD_MIN(ADAPTIVE_THRESHOLD):
+    def __init__(self,
+                 scorer: pt.Transformer,
+                 corpus_graph: 'CorpusGraph',
+                 budget: int = 1000,
+                 k: int = 1,
+                 threshold_sample_ratio: float = 0.1,
+                 batch_size: Optional[int] = None,
+                 verbose: bool = False,
+                 metadata: str = ''):
+        super().__init__(scorer, corpus_graph, budget=budget, k=k, threshold_sample_ratio=threshold_sample_ratio,
+                        batch_size=batch_size, verbose=verbose, metadata=metadata)
+        self.algorithm_type = 'adaptive_threshold_min'
+
+    def calculate_threshold(self, batch):
+        return min(batch.score[:math.floor(self.budget * self.threshold_sample_ratio)])
+    
+
+class ADAPTIVE_THRESHOLD_MEAN(ADAPTIVE_THRESHOLD):
+    def __init__(self,
+                 scorer: pt.Transformer,
+                 corpus_graph: 'CorpusGraph',
+                 budget: int = 1000,
+                 k: int = 1,
+                 threshold_sample_ratio: float = 0.1,
+                 batch_size: Optional[int] = None,
+                 verbose: bool = False,
+                 metadata: str = ''):
+        super().__init__(scorer, corpus_graph, budget=budget, k=k, threshold_sample_ratio=threshold_sample_ratio,
+                         batch_size=batch_size, verbose=verbose, metadata=metadata)
+        self.algorithm_type = 'adaptive_threshold_mean'
+
+    def calculate_threshold(self, batch):
+        return statistics.mean(batch.score[:math.floor(self.budget * self.threshold_sample_ratio)])
