@@ -24,7 +24,7 @@ class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
         super().__init__(scorer, corpus_graph, budget=budget,
                          batch_size=batch_size, verbose=verbose, metadata=metadata)
         self.algorithm_type = 'adaptive_threshold'
-        self.k = k
+        self.corpus_graph = self.corpus_graph.to_limit_k(k)
         self.threshold_sample_ratio = threshold_sample_ratio
 
     def score_algorithm(self, batch, scores, qid, query):
@@ -57,14 +57,12 @@ class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
             if len(score_queue) > 0:
                 did = max(score_queue, key=score_queue.get)
                 del score_queue[did]
-                k_count = 0
                 for target_did in self.corpus_graph.neighbours(did):
-                    if remaining <= 0 or k_count >= self.k:
+                    if remaining <= 0:
                         break
                     if target_did not in scored_docs and target_did not in to_score:
                         to_score[target_did] = 0
                         remaining -= 1
-                        k_count += 1
                 if len(to_score.keys()) > 0:
                     to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
                     to_score['qid'] = [qid for i in range(len(to_score))]
@@ -128,3 +126,24 @@ class ADAPTIVE_THRESHOLD_MEAN(ADAPTIVE_THRESHOLD):
 
     def calculate_threshold(self, batch):
         return statistics.mean(batch.score[:math.floor(self.budget * self.threshold_sample_ratio)])
+
+class ADAPTIVE_THRESHOLD_SD(ADAPTIVE_THRESHOLD):
+    def __init__(self,
+                 scorer: pt.Transformer,
+                 corpus_graph: 'CorpusGraph',
+                 budget: int = 1000,
+                 k: int = 1,
+                 threshold_sample_ratio: float = 0.1,
+                 sd: int = 0,
+                 batch_size: Optional[int] = None,
+                 verbose: bool = False,
+                 metadata: str = ''):
+        super().__init__(scorer, corpus_graph, budget=budget, k=k, threshold_sample_ratio=threshold_sample_ratio,
+                         batch_size=batch_size, verbose=verbose, metadata=metadata)
+        self.algorithm_type = 'adaptive_threshold_sd'
+        self.sd = sd
+
+    def calculate_threshold(self, batch):
+        mean = statistics.mean(batch.score[:math.floor(self.budget * self.threshold_sample_ratio)])
+        sd = statistics.stdev(batch.score[:math.floor(self.budget * self.threshold_sample_ratio)])
+        return mean + self.sd * sd
