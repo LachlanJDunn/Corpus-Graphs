@@ -80,6 +80,7 @@ class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
                     to_score['qid'] = [qid]
                     to_score['query'] = [query]
                     batch_scored = self.scorer(to_score)
+                    remaining -= 1
                     scored_list.append(batch_scored)
                     score_queue.update(
                         dict(zip(batch_scored.docno, batch_scored.score)))
