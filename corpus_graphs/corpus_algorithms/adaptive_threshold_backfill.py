@@ -29,7 +29,7 @@ class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
     def score_algorithm(self, batch, scores, qid, query):
         # Score top d initial retrieved documents (establishes threshold)
         # Alternate: score initial retrieved document, perform ladr_adaptive on neighbours of initial retrieved document until exhaustion (expanding only if document passes threshold)
-        # Scores at least initial_score_min from initial retrieved documents
+        # Scores at least initial_score_min from initial retrieved documents (unless backfilling results in >= initial_score_min documents being added)
         d = 50
         scored_list = []
         score_queue = {}
@@ -53,7 +53,7 @@ class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
 
         while remaining > 0:
             to_score = {}
-            if remaining <= self.initial_scored_min and len(batch_queue) > 0:
+            if remaining <= self.initial_scored_min and len(batch_queue) > 0 and (1000 - self.budget) < self.initial_scored_min:
                 did = max(batch_queue, key=batch_queue.get)
                 del batch_queue[did]
                 if did not in scored_docs:
@@ -108,3 +108,20 @@ class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
 
     def calculate_threshold(self, batch, d):
         return 0
+
+
+class ADAPTIVE_THRESHOLD_BACKFILL_MEAN(ADAPTIVE_THRESHOLD_BACKFILL):
+    def __init__(self,
+                 scorer: pt.Transformer,
+                 corpus_graph: 'CorpusGraph',
+                 budget: int = 1000,
+                 k: int = 1,
+                 verbose: bool = False,
+                 metadata: str = '',
+                 initial_scored_min: int = 0):
+        super().__init__(scorer, corpus_graph, budget=budget, k=k,
+                         verbose=verbose, metadata=metadata, initial_scored_min=initial_scored_min)
+        self.algorithm_type = 'adaptive_threshold_mean'
+
+    def calculate_threshold(self, batch, d):
+        return statistics.mean(batch.score[:d])
