@@ -17,7 +17,6 @@ class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
                  corpus_graph: 'CorpusGraph',
                  budget: int = 1000,
                  k: int = 1,
-                 threshold_sample_ratio: float = 0.1,
                  batch_size: Optional[int] = None,
                  verbose: bool = False,
                  metadata: str = ''):
@@ -28,17 +27,16 @@ class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
         self.threshold_sample_ratio = threshold_sample_ratio
 
     def score_algorithm(self, batch, scores, qid, query):
-        # Use threshold_sample_ratio% budget to score initial retrieved documents (establishes threshold)
+        # Score top d initial retrieved documents (establishes threshold)
         # Alternate: score initial retrieved document, perform ladr_adaptive on neighbours of initial retrieved document until exhaustion (expanding only if document passes threshold)
-
+        d = 50
         scored_list = []
         score_queue = {}
         batch_queue = {}
         scored_docs = {}
         to_score = {}
 
-        to_score.update({k: 0 for k in batch.docno[:math.floor(
-            self.budget * self.threshold_sample_ratio)]})
+        to_score.update({k: 0 for k in batch.docno[:d]})
         to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
         to_score['qid'] = [qid for i in range(len(to_score))]
         to_score['query'] = [query for i in range(len(to_score))]

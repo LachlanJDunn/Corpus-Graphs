@@ -14,10 +14,9 @@ class LEXICOGRAPHIC(CORPUS_ALGORITHM):
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
                  budget: int = 100,
-                 batch_size: Optional[int] = None,
                  verbose: bool = False,
                  metadata: str = ''):
-        super().__init__(scorer, corpus_graph, budget=budget, batch_size=batch_size, verbose=verbose, metadata=metadata)
+        super().__init__(scorer, corpus_graph, budget=budget, verbose=verbose, metadata=metadata)
         self.algorithm_type = 'lexicographic'
 
     def score_algorithm(self, batch, scores, qid, query):

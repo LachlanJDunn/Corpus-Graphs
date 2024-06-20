@@ -15,11 +15,10 @@ class LADR_ADAPTIVE_UNCAPPED(CORPUS_ALGORITHM):
                  corpus_graph: 'CorpusGraph',
                  budget: int = 1000,
                  k: int = 1,
-                 batch_size: Optional[int] = None,
                  verbose: bool = False,
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget,
-                         batch_size=batch_size, verbose=verbose, metadata=metadata)
+                         verbose=verbose, metadata=metadata)
         self.algorithm_type = 'ladr_adaptive_uncapped'
         self.k = k
 

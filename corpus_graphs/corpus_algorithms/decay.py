@@ -15,11 +15,10 @@ class DECAY(CORPUS_ALGORITHM):
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
                  budget: int = 100,
-                 batch_size: Optional[int] = None,
                  verbose: bool = False,
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget,
-                         batch_size=batch_size, verbose=verbose, metadata=metadata)
+                         verbose=verbose, metadata=metadata)
         self.algorithm_type = 'decay'
 
     def score_algorithm(self, batch, scores, qid, query):
@@ -66,11 +65,10 @@ class LINEAR_DECAY(DECAY):
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
                  budget: int = 100,
-                 batch_size: Optional[int] = None,
                  verbose: bool = False,
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget,
-                         batch_size=batch_size, verbose=verbose, metadata=metadata)
+                         verbose=verbose, metadata=metadata)
         self.algorithm_type = 'linear_decay'
 
     def decay(self, i, budget, k, c):
