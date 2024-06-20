@@ -17,11 +17,10 @@ class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
                  corpus_graph: 'CorpusGraph',
                  budget: int = 1000,
                  k: int = 1,
-                 batch_size: Optional[int] = None,
                  verbose: bool = False,
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget,
-                         batch_size=batch_size, verbose=verbose, metadata=metadata)
+                         verbose=verbose, metadata=metadata)
         self.algorithm_type = 'adaptive_threshold'
         self.k = k
 
@@ -181,11 +180,10 @@ class ADAPTIVE_THRESHOLD_MIN(ADAPTIVE_THRESHOLD):
                  corpus_graph: 'CorpusGraph',
                  budget: int = 1000,
                  k: int = 1,
-                 batch_size: Optional[int] = None,
                  verbose: bool = False,
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget, k=k,
-                        batch_size=batch_size, verbose=verbose, metadata=metadata)
+                        verbose=verbose, metadata=metadata)
         self.algorithm_type = 'adaptive_threshold_min'
 
     def calculate_threshold(self, batch, d):
@@ -198,11 +196,10 @@ class ADAPTIVE_THRESHOLD_MEAN(ADAPTIVE_THRESHOLD):
                  corpus_graph: 'CorpusGraph',
                  budget: int = 1000,
                  k: int = 1,
-                 batch_size: Optional[int] = None,
                  verbose: bool = False,
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget, k=k,
-                         batch_size=batch_size, verbose=verbose, metadata=metadata)
+                         verbose=verbose, metadata=metadata)
         self.algorithm_type = 'adaptive_threshold_mean'
 
     def calculate_threshold(self, batch, d):
@@ -215,11 +212,10 @@ class ADAPTIVE_THRESHOLD_SD(ADAPTIVE_THRESHOLD):
                  budget: int = 1000,
                  k: int = 1,
                  sd: int = 0,
-                 batch_size: Optional[int] = None,
                  verbose: bool = False,
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget, k=k,
-                         batch_size=batch_size, verbose=verbose, metadata=metadata)
+                         verbose=verbose, metadata=metadata)
         self.algorithm_type = 'adaptive_threshold_sd'
         self.sd = sd
 
