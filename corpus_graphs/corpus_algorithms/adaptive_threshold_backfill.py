@@ -147,14 +147,16 @@ class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
         scored_docs.update(dict.fromkeys(batch_scored.docno, 0))
 
         batch_queue.update(dict(zip(batch.docno, batch.score)))
+        batch_queue_count = 0
 
         remaining = self.budget - len(to_score.docno)
 
         while remaining > 0:
             to_score = {}
-            if remaining <= self.budget/3 and len(batch_queue) > 0:
+            if remaining <= self.budget/3 and len(batch_queue) > 0 and (1000 - self.budget) < self.initial_scored_min and batch_queue_count < 500:
                 did = max(batch_queue, key=batch_queue.get)
                 del batch_queue[did]
+                batch_queue_count += 1
                 if did not in scored_docs:
                     to_score = pd.DataFrame([did], columns=['docno'])
                     to_score['qid'] = [qid]
@@ -190,6 +192,7 @@ class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
                     break
                 did = max(batch_queue, key=batch_queue.get)
                 del batch_queue[did]
+                batch_queue_count += 1
                 if did not in scored_docs:
                     to_score = pd.DataFrame([did], columns=['docno'])
                     to_score['qid'] = [qid]
