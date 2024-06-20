@@ -128,7 +128,7 @@ class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
     def score_algorithm(self, batch, scores, qid, query):
         # Score top d initial retrieved documents (establishes threshold)
         # Alternate: score initial retrieved document, perform ladr_adaptive on neighbours of initial retrieved document until exhaustion (expanding only if document passes threshold)
-        # Scores at least initial_score_min from initial retrieved documents (unless backfilling results in >= initial_score_min documents being added)
+        # Scores budget/3 documents from initial retrieved (if backfill < budget/3; up to 400th initial retrieved document)
         d = 50
         scored_list = []
         score_queue = {}
@@ -153,7 +153,7 @@ class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
 
         while remaining > 0:
             to_score = {}
-            if remaining <= self.budget/3 and len(batch_queue) > 0 and (1000 - self.budget) < self.initial_scored_min and batch_queue_count < 500:
+            if remaining <= self.budget/3 and len(batch_queue) > 0 and (1000 - self.budget) < self.budget/3 and batch_queue_count < 400:
                 did = max(batch_queue, key=batch_queue.get)
                 del batch_queue[did]
                 batch_queue_count += 1
