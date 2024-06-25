@@ -35,7 +35,7 @@ class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
         scored_docs = {}
         to_score = {}
 
-        to_score.update({k: 0 for k in batch.docno[:d]})
+        to_score.update({k: 0 for k in batch.docno[:min(d, self.budget)]})
         to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
         to_score['qid'] = [qid for i in range(len(to_score))]
         to_score['query'] = [query for i in range(len(to_score))]

@@ -31,12 +31,12 @@ class LADR_ADAPTIVE(CORPUS_ALGORITHM):
         to_score = {}
 
         to_score.update(
-            {k: 0 for k in batch.docno[:min(self.budget, len(batch.docno))]})
+            {k: 0 for k in batch.docno[:min(self.budget, self.c)]})
         to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
         to_score['qid'] = [qid for i in range(len(to_score))]
         to_score['query'] = [query for i in range(len(to_score))]
         batch_scored = self.scorer(to_score)
-        scored_docs = pd.concat([scored_docs, batch_scored[['docno', 'score']]])
+        scored_docs = batch_scored[['docno', 'score']]
 
         remaining = self.budget - len(to_score)
 
@@ -50,7 +50,7 @@ class LADR_ADAPTIVE(CORPUS_ALGORITHM):
                     k_count += 1
                     if k_count > self.k or remaining <= 0:
                         break
-                    if target_did not in scored_docs.docno and target_did not in to_score:
+                    if str(target_did) not in scored_docs.docno.values and target_did not in to_score:
                         to_score[target_did] = 0
                         remaining -= 1
             if len(to_score.keys()) == 0:
