@@ -19,7 +19,7 @@ class ADAPTIVE_UNCAPPED(CORPUS_ALGORITHM):
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget,
                          verbose=verbose, metadata=metadata)
-        self.algorithm_type = 'adaptive_uncapped'
+        self.algorithm_type = f'adaptive_uncapped_{k}'
         self.k = k
 
     def score_algorithm(self, batch, scores, qid, query):

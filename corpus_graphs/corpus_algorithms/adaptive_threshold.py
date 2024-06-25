@@ -21,7 +21,7 @@ class ADAPTIVE_THRESHOLD(CORPUS_ALGORITHM):
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget,
                          verbose=verbose, metadata=metadata)
-        self.algorithm_type = 'adaptive_threshold'
+        self.algorithm_type = f'adaptive_threshold_{k}'
         self.k = k
 
     def score_algorithm(self, batch, scores, qid, query):
@@ -185,7 +185,7 @@ class ADAPTIVE_THRESHOLD_MIN(ADAPTIVE_THRESHOLD):
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget, k=k,
                         verbose=verbose, metadata=metadata)
-        self.algorithm_type = 'adaptive_threshold_min'
+        self.algorithm_type = f'adaptive_threshold_min_{k}'
 
     def calculate_threshold(self, batch, d):
         return min(batch.score[:d])
@@ -201,7 +201,7 @@ class ADAPTIVE_THRESHOLD_MEAN(ADAPTIVE_THRESHOLD):
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget, k=k,
                          verbose=verbose, metadata=metadata)
-        self.algorithm_type = 'adaptive_threshold_mean'
+        self.algorithm_type = f'adaptive_threshold_mean_{k}'
 
     def calculate_threshold(self, batch, d):
         return statistics.mean(batch.score[:d])
@@ -217,7 +217,7 @@ class ADAPTIVE_THRESHOLD_SD(ADAPTIVE_THRESHOLD):
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget, k=k,
                          verbose=verbose, metadata=metadata)
-        self.algorithm_type = 'adaptive_threshold_sd'
+        self.algorithm_type = f'adaptive_threshold_sd_{k}'
         self.sd = sd
 
     def calculate_threshold(self, batch, d):

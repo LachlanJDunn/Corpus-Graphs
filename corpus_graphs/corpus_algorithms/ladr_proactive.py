@@ -25,10 +25,8 @@ class LADR_PROACTIVE(CORPUS_ALGORITHM):
         to_score = {}
         to_score.update({k: 0 for k in batch.docno})
         for did in batch.docno:
-            count = 1
             for target_did in self.corpus_graph.neighbours(did):
                 to_score[target_did] = 0
-                count += 1
         to_score = pd.DataFrame(to_score.keys(), columns=['docno'])
         to_score['qid'] = [qid for i in range(len(to_score))]
         to_score['query'] = [query for i in range(len(to_score))]

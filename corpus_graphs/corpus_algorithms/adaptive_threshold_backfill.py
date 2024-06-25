@@ -21,7 +21,7 @@ class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget,
                          verbose=verbose, metadata=metadata)
-        self.algorithm_type = 'adaptive_threshold_backfill'
+        self.algorithm_type = f'adaptive_threshold_backfill_{k}'
         self.k = k
 
     def score_algorithm(self, batch, scores, qid, query):
@@ -121,7 +121,7 @@ class ADAPTIVE_THRESHOLD_BACKFILL_MEAN(ADAPTIVE_THRESHOLD_BACKFILL):
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget, k=k,
                          verbose=verbose, metadata=metadata)
-        self.algorithm_type = 'adaptive_threshold_backfill_mean'
+        self.algorithm_type = f'adaptive_threshold_backfill_mean_{k}'
 
     def calculate_threshold(self, batch, d):
         return statistics.mean(batch.score[:d])
