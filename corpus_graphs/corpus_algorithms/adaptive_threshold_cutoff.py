@@ -24,12 +24,12 @@ class ADAPTIVE_THRESHOLD_CUTOFF(CORPUS_ALGORITHM):
                          verbose=verbose, metadata=metadata)
         self.algorithm_type = f'adaptive_threshold_cutoff_{k}'
         self.k = k
-        self.budget = min(self.budget, cutoff)
+        self.cutoff = cutoff
 
     def score_algorithm(self, batch, scores, qid, query):
         # Score top d initial retrieved documents (establishes threshold)
         # Alternate: score initial retrieved document, perform ladr_adaptive on neighbours of initial retrieved document until exhaustion (expanding only if document passes threshold)
-        # Caps budget at cutoff to allow budget - cutoff documents to be backfilled from retriever
+        # Returns cutoff number of documents to allow remaining to be backfilled from retriever
         d = 50
 
         scored_list = []
@@ -94,6 +94,7 @@ class ADAPTIVE_THRESHOLD_CUTOFF(CORPUS_ALGORITHM):
 
         scored = pd.concat(scored_list)
         self.scored_count += len(scored)
+        scored = scored.sort_values(by=['score'], ascending=False).iloc[:self.cutoff]
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})
 
     def calculate_threshold(self, batch, d):
