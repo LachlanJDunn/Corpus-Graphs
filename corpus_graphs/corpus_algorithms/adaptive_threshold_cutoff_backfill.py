@@ -11,23 +11,26 @@ import csv
 logger = ir_datasets.log.easy()
 
 
-class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
+class ADAPTIVE_THRESHOLD_CUTOFF_BACKFILL(CORPUS_ALGORITHM):
     def __init__(self,
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
                  budget: int = 1000,
+                 cutoff: int = 900,
                  k: int = 1,
                  verbose: bool = False,
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget,
                          verbose=verbose, metadata=metadata)
-        self.algorithm_type = f'adaptive_threshold_backfill_{k}'
+        self.algorithm_type = f'adaptive_threshold_cutoff_backfill_{k}'
         self.k = k
+        self.cutoff = cutoff
 
     def score_algorithm(self, batch, scores, qid, query):
         # Score top d initial retrieved documents (establishes threshold)
         # Alternate: score initial retrieved document, perform ladr_adaptive on neighbours of initial retrieved document until exhaustion (expanding only if document passes threshold)
-        # Scores budget/3 documents from initial retrieved (if backfill < budget/3; up to 400th initial retrieved document)
+        # Then scores 100 from initial retrieved (continues algorithm if exhausted)
+        # Returns 900 to allow 100 backfilled retriever documents
         d = 50
         scored_list = []
         score_queue = {}
@@ -46,16 +49,14 @@ class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
         scored_docs.update(dict.fromkeys(batch_scored.docno, 0))
 
         batch_queue.update(dict(zip(batch.docno, batch.score)))
-        batch_queue_count = 0
 
         remaining = self.budget - len(to_score.docno)
 
         while remaining > 0:
             to_score = {}
-            if remaining <= self.budget/3 and len(batch_queue) > 0 and (1000 - self.budget) < self.budget/3 and batch_queue_count < 400:
+            if remaining <= 100 and len(batch_queue) > 0:
                 did = max(batch_queue, key=batch_queue.get)
                 del batch_queue[did]
-                batch_queue_count += 1
                 if did not in scored_docs:
                     to_score = pd.DataFrame([did], columns=['docno'])
                     to_score['qid'] = [qid]
@@ -92,7 +93,6 @@ class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
                     break
                 did = max(batch_queue, key=batch_queue.get)
                 del batch_queue[did]
-                batch_queue_count += 1
                 if did not in scored_docs:
                     to_score = pd.DataFrame([did], columns=['docno'])
                     to_score['qid'] = [qid]
@@ -107,23 +107,26 @@ class ADAPTIVE_THRESHOLD_BACKFILL(CORPUS_ALGORITHM):
 
         scored = pd.concat(scored_list)
         self.scored_count += len(scored)
+        scored = scored.sort_values(
+            by=['score'], ascending=False).iloc[:self.cutoff]
         scores.update({k: s for k, s in zip(scored.docno, scored.score)})
 
     def calculate_threshold(self, batch, d):
         return 0
 
 
-class ADAPTIVE_THRESHOLD_BACKFILL_MEAN(ADAPTIVE_THRESHOLD_BACKFILL):
+class ADAPTIVE_THRESHOLD_CUTOFF_BACKFILL_MEAN(ADAPTIVE_THRESHOLD_CUTOFF_BACKFILL):
     def __init__(self,
                  scorer: pt.Transformer,
                  corpus_graph: 'CorpusGraph',
                  budget: int = 1000,
+                 cutoff: int = 900,
                  k: int = 1,
                  verbose: bool = False,
                  metadata: str = ''):
-        super().__init__(scorer, corpus_graph, budget=budget, k=k,
+        super().__init__(scorer, corpus_graph, budget=budget, cutoff=cutoff, k=k,
                          verbose=verbose, metadata=metadata)
-        self.algorithm_type = f'adaptive_threshold_backfill_mean_{k}'
+        self.algorithm_type = f'adaptive_threshold_cutoff_backfill_mean_{k}'
 
     def calculate_threshold(self, batch, d):
         return statistics.mean(batch.score[:d])

@@ -88,8 +88,9 @@ class ADAPTIVE_THRESHOLD_CUTOFF(CORPUS_ALGORITHM):
                     batch_scored = self.scorer(to_score)
                     remaining -= 1
                     scored_list.append(batch_scored)
-                    score_queue.update(
-                        dict(zip(batch_scored.docno, batch_scored.score)))
+                    if batch_scored.iloc[0].score >= threshold:
+                        score_queue.update(
+                            dict(zip(batch_scored.docno, batch_scored.score)))
                     scored_docs.update(dict.fromkeys(batch_scored.docno, 0))
 
         scored = pd.concat(scored_list)
@@ -112,7 +113,7 @@ class ADAPTIVE_THRESHOLD_CUTOFF_MEAN(ADAPTIVE_THRESHOLD_CUTOFF):
                  metadata: str = ''):
         super().__init__(scorer, corpus_graph, budget=budget, cutoff=cutoff, k=k,
                          verbose=verbose, metadata=metadata)
-        self.algorithm_type = f'adaptive_threshold_backfill_mean_{k}'
+        self.algorithm_type = f'adaptive_threshold_cutoff_mean_{k}'
 
     def calculate_threshold(self, batch, d):
         return statistics.mean(batch.score[:d])
